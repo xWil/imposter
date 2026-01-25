@@ -2,6 +2,7 @@ package gg.wil.imposter.services;
 
 import gg.wil.imposter.api.model.LobbyResponse;
 import gg.wil.imposter.exception.LobbyException;
+import gg.wil.imposter.exception.lobby.CantCreateLobbyException;
 import gg.wil.imposter.exception.lobby.LobbyNotFoundException;
 import gg.wil.imposter.game.Player;
 import gg.wil.imposter.game.lobby.Lobby;
@@ -22,6 +23,7 @@ public class LobbyService {
     public final Mono<LobbyResponse> createLobby(String username) {
         Player host = Player.create(username);
         Lobby lobby = Lobby.create(host);
+        if(lobby == null) return Mono.error(new CantCreateLobbyException());
         lobbyRepo.addLobby(lobby);
         return Mono.just(new LobbyResponse(lobby.getLobbyCode(), "ws://localhost:8080/ws", host.getUUID().toString()));
     }

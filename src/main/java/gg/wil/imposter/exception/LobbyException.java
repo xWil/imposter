@@ -27,6 +27,7 @@ public abstract class LobbyException extends RuntimeException {
 
     public enum LobbyExceptionType {
         ALREADY_IN_LOBBY,
+        CANT_CREATE_LOBBY,
         GAME_IN_PROGRESS,
         LOBBY_NOT_FOUND;
     }

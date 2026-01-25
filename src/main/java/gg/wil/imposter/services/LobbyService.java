@@ -16,6 +16,7 @@ public class LobbyService {
 
     public LobbyService(LobbyRepo lobbyRepo) {
         this.lobbyRepo = lobbyRepo;
+        LobbyRepo.setInstance(lobbyRepo);
     }
 
     public final Mono<LobbyResponse> createLobby(String username) {

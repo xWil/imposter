@@ -8,6 +8,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Repository
 public class LobbyRepo {
 
+    private static LobbyRepo INSTANCE;
+    public static void setInstance(LobbyRepo instance) {
+        LobbyRepo.INSTANCE = instance;
+    }
+    public static LobbyRepo getInstance() {
+        return INSTANCE;
+    }
+
     private final ConcurrentHashMap<String, Lobby> lobbies = new ConcurrentHashMap<>();
 
     public final boolean addLobby(Lobby lobby) {
@@ -19,7 +27,7 @@ public class LobbyRepo {
     }
 
     public final Lobby getLobby(String lobbyCode) {
-        return lobbies.get(lobbyCode);
+        return lobbies.get(lobbyCode.toUpperCase());
     }
 
     public final boolean removeLobby(String lobbyCode) {

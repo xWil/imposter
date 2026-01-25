@@ -22,11 +22,11 @@ public class LobbyController {
 
     @GetMapping("/create")
     public Mono<LobbyResponse> createLobby(@RequestBody CreateRequest request) {
-        return Mono.just(this.lobbyService.createLobby(request.username()));
+        return this.lobbyService.createLobby(request.username());
     }
 
     @GetMapping("/join")
     public Mono<LobbyResponse> joinLobby(@RequestBody JoinRequest request) {
-        return Mono.just(this.lobbyService.joinLobby(request.lobbyCode(), request.username()));
+        return this.lobbyService.joinLobby(request.lobbyCode(), request.username());
     }
 }

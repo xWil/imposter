@@ -1,5 +1,8 @@
 package gg.wil.imposter.game.lobby;
 
+import gg.wil.imposter.exception.LobbyException;
+import gg.wil.imposter.exception.lobby.AlreadyInLobbyException;
+import gg.wil.imposter.exception.lobby.InProgressException;
 import gg.wil.imposter.game.Player;
 
 import java.util.Collection;
@@ -39,12 +42,11 @@ public class Lobby {
         return this.players.containsKey(uuid);
     }
 
-    public final boolean addPlayer(Player player) {
-        if(this.state != LobbyState.WAITING) return false;
-        if(this.players.containsKey(player.getUUID())) return false;
+    public final void addPlayer(Player player) throws LobbyException {
+        if(this.state != LobbyState.WAITING) throw new InProgressException(this.lobbyCode);
+        if(this.players.containsKey(player.getUUID())) throw new AlreadyInLobbyException(this.lobbyCode);
 
         this.players.put(player.getUUID(), player);
-        return true;
     }
 
     public static Lobby create(Player host) {

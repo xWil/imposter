@@ -1,10 +1,13 @@
 package gg.wil.imposter.services;
 
 import gg.wil.imposter.api.model.LobbyResponse;
+import gg.wil.imposter.exception.LobbyException;
+import gg.wil.imposter.exception.lobby.LobbyNotFoundException;
 import gg.wil.imposter.game.Player;
 import gg.wil.imposter.game.lobby.Lobby;
 import gg.wil.imposter.repo.LobbyRepo;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 public class LobbyService {
@@ -15,17 +18,22 @@ public class LobbyService {
         this.lobbyRepo = lobbyRepo;
     }
 
-    public final LobbyResponse createLobby(String username) {
+    public final Mono<LobbyResponse> createLobby(String username) {
         Player host = Player.create(username);
         Lobby lobby = Lobby.create(host);
         lobbyRepo.addLobby(lobby);
-        return new LobbyResponse(lobby.getLobbyCode(), "ws://localhost:8080/ws", host.getUUID().toString());
+        return Mono.just(new LobbyResponse(lobby.getLobbyCode(), "ws://localhost:8080/ws", host.getUUID().toString()));
     }
 
-    public final LobbyResponse joinLobby(String lobbyCode, String username) {
+    public final Mono<LobbyResponse> joinLobby(String lobbyCode, String username) {
         Lobby lobby = lobbyRepo.getLobby(lobbyCode);
-        if(lobby == null) return null;
+        if(lobby == null) return Mono.error(new LobbyNotFoundException(lobbyCode));
         Player player = Player.create(username);
-        return new LobbyResponse(lobbyCode, "ws://localhost:8080/ws", player.getUUID().toString());
+        try {
+            lobby.addPlayer(player);
+        } catch (LobbyException e) {
+            return Mono.error(e);
+        }
+        return Mono.just(new LobbyResponse(lobby.getLobbyCode(), "ws://localhost:8080/ws", player.getUUID().toString()));
     }
 }

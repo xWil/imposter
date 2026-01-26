@@ -5,6 +5,8 @@ import gg.wil.imposter.exception.lobby.AlreadyInLobbyException;
 import gg.wil.imposter.exception.lobby.InProgressException;
 import gg.wil.imposter.game.Player;
 import gg.wil.imposter.repo.LobbyRepo;
+import org.springframework.web.reactive.socket.WebSocketSession;
+import reactor.core.publisher.Mono;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -16,6 +18,7 @@ public class Lobby {
     private LobbyState state;
     private final Player host;
     private final ConcurrentHashMap<UUID, Player> players = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, WebSocketSession> sessions = new ConcurrentHashMap<>();
 
     private Lobby(String lobbyCode, Player host) {
         this.lobbyCode = lobbyCode;
@@ -49,6 +52,25 @@ public class Lobby {
 
         this.players.put(player.getUUID(), player);
     }
+
+    public final void playerConnected(UUID playerID, WebSocketSession session) {
+        if(!this.players.containsKey(playerID)) return;
+        if(this.sessions.containsKey(playerID)) return;
+
+        this.sessions.put(playerID, session);
+    }
+
+    public final void playerDisconnected(UUID playerID) {
+        sessions.remove(playerID);
+    }
+
+    public final Mono<Void> receiveMessage(UUID playerID, String message) {
+        if(!sessions.containsKey(playerID)) return Mono.empty();
+        System.out.println(message);
+        return Mono.empty();
+    }
+
+    ///  STATIC
 
     private static final char[] allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".toCharArray();
 

@@ -1,5 +1,6 @@
 package gg.wil.imposter.api.websocket;
 
+import gg.wil.imposter.exception.WebSocketException;
 import gg.wil.imposter.services.LobbyService;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.stereotype.Component;
@@ -26,8 +27,16 @@ public class LobbyWebSocketHandler implements WebSocketHandler {
 
         String lobbyCode = getLobbyCode(session);
         UUID playerID = getPlayerID(session);
-        this.lobbyService.playerConnected(lobbyCode, playerID, session);
 
+        // check credentials
+        try {
+            this.lobbyService.checkCredentials(lobbyCode, playerID);
+        } catch(WebSocketException e) {
+            String message = "{\n  \"type:\": \"ERROR\",\n  \"code\": \"" + e.getType() + "\",\n \"message\": \"" + e.getMessage() + "\"\n}";
+            return session.send(Mono.just(session.textMessage(message))).then(session.close());
+        }
+
+        this.lobbyService.playerConnected(lobbyCode, playerID, session);
         Mono<Void> incoming = session.receive().map(WebSocketMessage::getPayloadAsText)
                 .flatMap(msg -> this.lobbyService.handleMessage(lobbyCode, playerID, msg))
                 .onErrorResume(_ -> Mono.empty())

@@ -1,6 +1,6 @@
 package gg.wil.imposter.api;
 
-import gg.wil.imposter.api.model.ErrorResponse;
+import gg.wil.imposter.api.messages.ErrorResponse;
 import gg.wil.imposter.exception.LobbyException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;

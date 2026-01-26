@@ -1,8 +1,8 @@
 package gg.wil.imposter.api.controller;
 
-import gg.wil.imposter.api.model.CreateRequest;
-import gg.wil.imposter.api.model.JoinRequest;
-import gg.wil.imposter.api.model.LobbyResponse;
+import gg.wil.imposter.api.messages.CreateRequest;
+import gg.wil.imposter.api.messages.JoinRequest;
+import gg.wil.imposter.api.messages.LobbyResponse;
 import gg.wil.imposter.services.LobbyService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;

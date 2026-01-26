@@ -1,6 +1,6 @@
 package gg.wil.imposter.services;
 
-import gg.wil.imposter.api.model.LobbyResponse;
+import gg.wil.imposter.api.messages.LobbyResponse;
 import gg.wil.imposter.exception.LobbyException;
 import gg.wil.imposter.exception.WebSocketException;
 import gg.wil.imposter.exception.lobby.CantCreateLobbyException;

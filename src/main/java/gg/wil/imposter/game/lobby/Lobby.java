@@ -55,15 +55,27 @@ public class Lobby {
     }
 
     public final void playerConnected(UUID playerID, WebSocketSession session, Sinks.Many<String> outgoingSink) {
-        if(!this.players.containsKey(playerID)) return;
+        Player player;
+        if(!this.players.containsKey(playerID)) {
+            if(!host.getUUID().equals(playerID)) return;
+            player = this.host;
+        } else {
+            player = this.players.get(playerID);
+        }
 
-        Player player = this.players.get(playerID);
         player.playerConnected(session, outgoingSink);
         player.sendMessage(new SendPlayerListMessage(this.host, this.players.values()));
     }
 
     public final void playerDisconnected(UUID playerID) {
-        players.get(playerID).playerDisconnected();
+        Player player = players.get(playerID);
+        if(player == null) {
+            if(playerID.equals(host.getUUID())) {
+                // HOST DISCONNECTED!!! NOT GOOD
+                player = host;
+            } else return;
+        }
+        player.playerDisconnected();
     }
 
     public final Mono<Void> receiveMessage(UUID playerID, String message) {

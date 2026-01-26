@@ -67,6 +67,6 @@ public class LobbyService {
     public final void checkCredentials(String lobbyCode, UUID playerID) throws WebSocketException {
         Lobby lobby = lobbyRepo.getLobby(lobbyCode);
         if(lobby == null) throw new InvalidLobbyCodeException();
-        if(!lobby.hasPlayer(playerID)) throw new InvalidPlayerIdException();
+        if(!lobby.hasPlayer(playerID) && !lobby.getHost().getUUID().equals(playerID)) throw new InvalidPlayerIdException();
     }
 }

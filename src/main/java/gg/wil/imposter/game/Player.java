@@ -46,6 +46,7 @@ public class Player {
     }
 
     public void sendMessage(WebSocketSendMessage message) {
+        if(this.outgoingSink == null) return;
         this.outgoingSink.tryEmitNext(message.toJson());
     }
 

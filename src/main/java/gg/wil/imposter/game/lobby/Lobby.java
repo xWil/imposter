@@ -1,5 +1,7 @@
 package gg.wil.imposter.game.lobby;
 
+import gg.wil.imposter.api.messages.websocket.WebSocketSendMessage;
+import gg.wil.imposter.api.messages.websocket.send.SendPlayerJoinMessage;
 import gg.wil.imposter.api.messages.websocket.send.SendPlayerListMessage;
 import gg.wil.imposter.exception.LobbyException;
 import gg.wil.imposter.exception.lobby.AlreadyInLobbyException;
@@ -62,7 +64,7 @@ public class Lobby {
         } else {
             player = this.players.get(playerID);
         }
-
+        broadcast(new SendPlayerJoinMessage(player));
         player.playerConnected(session, outgoingSink);
         player.sendMessage(new SendPlayerListMessage(this.host, this.players.values()));
     }
@@ -82,6 +84,11 @@ public class Lobby {
         if(!players.containsKey(playerID)) return Mono.empty();
         System.out.println(message);
         return Mono.empty();
+    }
+
+    public final void broadcast(WebSocketSendMessage message) {
+        host.sendMessage(message);
+        players.values().forEach(player -> player.sendMessage(message));
     }
 
     ///  STATIC

@@ -1,8 +1,10 @@
 package gg.wil.imposter.api.messages.websocket;
 
+import gg.wil.imposter.api.messages.websocket.send.SendPlayerJoinMessage;
 import gg.wil.imposter.api.messages.websocket.send.SendPlayerListMessage;
 
 public enum WebSocketMessageType {
+    SEND_PLAYER_JOIN(SendPlayerJoinMessage.class),
     SEND_PLAYER_LIST(SendPlayerListMessage.class);
 
     private final Class<?> messageClass;

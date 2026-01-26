@@ -2,8 +2,6 @@ package gg.wil.imposter.api.messages.websocket.send;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializer;
 import gg.wil.imposter.api.messages.websocket.WebSocketMessageType;
 import gg.wil.imposter.api.messages.websocket.WebSocketSendMessage;
 import gg.wil.imposter.game.Player;
@@ -31,14 +29,7 @@ public final class SendPlayerListMessage extends WebSocketSendMessage {
 
     @Override
     public String toJson() {
-        Gson gson = new GsonBuilder().registerTypeAdapter(Player.class, (JsonSerializer<Player>) (src, type, context) -> {
-                    JsonObject jsonObject = new JsonObject();
-                    jsonObject.addProperty("uuid", src.getUUID().toString());
-                    jsonObject.addProperty("username", src.getUsername());
-                    return jsonObject;
-                })
-                .create();
-
+        Gson gson = new GsonBuilder().registerTypeAdapter(Player.class, getPlayerTypeAdapter()).create();
         return gson.toJson(this);
     }
 }

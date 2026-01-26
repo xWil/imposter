@@ -8,7 +8,9 @@ import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import java.util.UUID;
 
@@ -36,13 +38,16 @@ public class LobbyWebSocketHandler implements WebSocketHandler {
             return session.send(Mono.just(session.textMessage(message))).then(session.close());
         }
 
-        this.lobbyService.playerConnected(lobbyCode, playerID, session);
+        Sinks.Many<String> outgoingSink = Sinks.many().unicast().onBackpressureBuffer();
+
+        this.lobbyService.playerConnected(lobbyCode, playerID, session, outgoingSink);
+        Flux<WebSocketMessage> outgoing = outgoingSink.asFlux().map(session::textMessage);
         Mono<Void> incoming = session.receive().map(WebSocketMessage::getPayloadAsText)
                 .flatMap(msg -> this.lobbyService.handleMessage(lobbyCode, playerID, msg))
                 .onErrorResume(_ -> Mono.empty())
                 .then();
 
-        return incoming.doFinally(signalType -> this.lobbyService.playerDisconnected(lobbyCode, playerID));
+        return session.send(outgoing).and(incoming.doFinally(signalType -> this.lobbyService.playerDisconnected(lobbyCode, playerID)));
     }
 
     private String getLobbyCode(WebSocketSession session) {

@@ -1,5 +1,6 @@
 package gg.wil.imposter.game.lobby;
 
+import gg.wil.imposter.api.messages.websocket.send.SendPlayerListMessage;
 import gg.wil.imposter.exception.LobbyException;
 import gg.wil.imposter.exception.lobby.AlreadyInLobbyException;
 import gg.wil.imposter.exception.lobby.InProgressException;
@@ -7,6 +8,7 @@ import gg.wil.imposter.game.Player;
 import gg.wil.imposter.repo.LobbyRepo;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -18,7 +20,6 @@ public class Lobby {
     private LobbyState state;
     private final Player host;
     private final ConcurrentHashMap<UUID, Player> players = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<UUID, WebSocketSession> sessions = new ConcurrentHashMap<>();
 
     private Lobby(String lobbyCode, Player host) {
         this.lobbyCode = lobbyCode;
@@ -53,19 +54,20 @@ public class Lobby {
         this.players.put(player.getUUID(), player);
     }
 
-    public final void playerConnected(UUID playerID, WebSocketSession session) {
+    public final void playerConnected(UUID playerID, WebSocketSession session, Sinks.Many<String> outgoingSink) {
         if(!this.players.containsKey(playerID)) return;
-        if(this.sessions.containsKey(playerID)) return;
 
-        this.sessions.put(playerID, session);
+        Player player = this.players.get(playerID);
+        player.playerConnected(session, outgoingSink);
+        player.sendMessage(new SendPlayerListMessage(this.host, this.players.values()));
     }
 
     public final void playerDisconnected(UUID playerID) {
-        sessions.remove(playerID);
+        players.get(playerID).playerDisconnected();
     }
 
     public final Mono<Void> receiveMessage(UUID playerID, String message) {
-        if(!sessions.containsKey(playerID)) return Mono.empty();
+        if(!players.containsKey(playerID)) return Mono.empty();
         System.out.println(message);
         return Mono.empty();
     }

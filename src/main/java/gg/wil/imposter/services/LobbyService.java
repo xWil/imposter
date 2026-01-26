@@ -13,6 +13,7 @@ import gg.wil.imposter.repo.LobbyRepo;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import java.util.UUID;
 
@@ -46,10 +47,9 @@ public class LobbyService {
         return Mono.just(new LobbyResponse(lobby.getLobbyCode(), "ws://localhost:8080/ws/lobby/", player.getUUID().toString()));
     }
 
-    public final void playerConnected(String lobbyCode, UUID playerID, WebSocketSession session) {
+    public final void playerConnected(String lobbyCode, UUID playerID, WebSocketSession session, Sinks.Many<String> outgoingSink) {
         Lobby lobby = lobbyRepo.getLobby(lobbyCode);
-        lobby.playerConnected(playerID, session);
-        lobbyRepo.getLobby(lobbyCode).playerConnected(playerID, session);
+        lobby.playerConnected(playerID, session, outgoingSink);
     }
 
     public final Mono<Void> handleMessage(String lobbyCode, UUID playerID, String message) {

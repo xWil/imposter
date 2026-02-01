@@ -27,8 +27,8 @@ public class LobbyService {
         LobbyRepo.setInstance(lobbyRepo);
     }
 
-    public final Mono<LobbyResponse> createLobby(String username) {
-        Player host = Player.create(username);
+    public final Mono<LobbyResponse> createLobby() {
+        Player host = Player.create("");
         Lobby lobby = Lobby.create(host);
         if(lobby == null) return Mono.error(new CantCreateLobbyException());
         lobbyRepo.addLobby(lobby);

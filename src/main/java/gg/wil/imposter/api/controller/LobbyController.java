@@ -1,7 +1,5 @@
 package gg.wil.imposter.api.controller;
 
-import gg.wil.imposter.api.messages.CreateRequest;
-import gg.wil.imposter.api.messages.JoinRequest;
 import gg.wil.imposter.api.messages.LobbyResponse;
 import gg.wil.imposter.services.LobbyService;
 import org.springframework.web.bind.annotation.*;
@@ -17,13 +15,13 @@ public class LobbyController {
         this.lobbyService = lobbyService;
     }
 
-    @PostMapping("/create")
-    public Mono<LobbyResponse> createLobby(@RequestBody CreateRequest request) {
-        return this.lobbyService.createLobby(request.username());
+    @GetMapping("/create")
+    public Mono<LobbyResponse> createLobby() {
+        return this.lobbyService.createLobby();
     }
 
-    @PostMapping("/join")
-    public Mono<LobbyResponse> joinLobby(@RequestBody JoinRequest request) {
-        return this.lobbyService.joinLobby(request.lobbyCode(), request.username());
+    @GetMapping("/join")
+    public Mono<LobbyResponse> joinLobby(@RequestParam("lobby") String lobbyCode, @RequestParam("username") String username) {
+        return this.lobbyService.joinLobby(lobbyCode, username);
     }
 }

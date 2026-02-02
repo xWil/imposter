@@ -1,5 +1,10 @@
 package gg.wil.imposter.game;
 
+import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
+import gg.wil.imposter.api.messages.websocket.receive.ReceiveIconChangeMessage;
+
+import java.util.Set;
+
 public class GameThread extends Thread {
 
     private final Game game;
@@ -44,7 +49,20 @@ public class GameThread extends Thread {
     }
 
     private void tick() {
+        processMessages();
+    }
 
+    private void processMessages() {
+        Set<WebSocketReceiveMessage> messages = game.getUnprocessedMessages(true);
+        System.out.println("Handling " + messages.size() + " messages");
+        for(WebSocketReceiveMessage message : messages) {
+            switch (message) {
+                case ReceiveIconChangeMessage receiveIconChangeMessage -> {
+                    System.out.println("Icon change message received from " + receiveIconChangeMessage.getFrom().getUUID());
+                }
+                default -> throw new IllegalStateException("Unexpected value: " + message);
+            }
+        }
     }
 
     public void stopGame() {

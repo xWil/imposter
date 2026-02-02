@@ -1,5 +1,8 @@
 package gg.wil.imposter.game;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessageType;
 import gg.wil.imposter.api.messages.websocket.WebSocketSendMessage;
 import gg.wil.imposter.api.messages.websocket.send.SendPlayerJoinMessage;
 import gg.wil.imposter.api.messages.websocket.send.SendPlayerListMessage;
@@ -28,7 +31,7 @@ public class Lobby {
         this.lobbyCode = lobbyCode;
         this.state = LobbyState.WAITING;
         this.host = host;
-        this.game = new Game();
+        this.game = new Game(this);
     }
 
     public final String getLobbyCode() {
@@ -84,7 +87,15 @@ public class Lobby {
 
     public final Mono<Void> receiveMessage(UUID playerID, String message) {
         if(!players.containsKey(playerID)) return Mono.empty();
-        System.out.println(message);
+        try {
+            JsonObject object = JsonParser.parseString(message).getAsJsonObject();
+            String typeString = object.get("type").getAsString();
+            if(typeString == null) return Mono.empty();
+
+            WebSocketReceiveMessageType type = WebSocketReceiveMessageType.valueOf(typeString);
+            JsonObject data = object.getAsJsonObject("data");
+            game.receiveMessage(type.create(players.get(playerID), data));
+        } catch (Exception ignored) {}
         return Mono.empty();
     }
 

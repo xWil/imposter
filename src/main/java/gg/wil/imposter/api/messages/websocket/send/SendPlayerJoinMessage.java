@@ -2,7 +2,7 @@ package gg.wil.imposter.api.messages.websocket.send;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import gg.wil.imposter.api.messages.websocket.WebSocketMessageType;
+import gg.wil.imposter.api.messages.websocket.WebSocketSendMessageType;
 import gg.wil.imposter.api.messages.websocket.WebSocketSendMessage;
 import gg.wil.imposter.game.Player;
 
@@ -11,7 +11,7 @@ public class SendPlayerJoinMessage extends WebSocketSendMessage {
     private final Player player;
 
     public SendPlayerJoinMessage(Player player) {
-        super(WebSocketMessageType.SEND_PLAYER_JOIN);
+        super(WebSocketSendMessageType.PLAYER_JOIN);
         this.player = player;
     }
 

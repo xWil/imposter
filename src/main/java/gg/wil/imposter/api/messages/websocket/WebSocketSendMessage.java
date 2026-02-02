@@ -4,9 +4,15 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializer;
 import gg.wil.imposter.game.Player;
 
-public abstract class WebSocketSendMessage extends WebSocketMessage {
-    public WebSocketSendMessage(WebSocketMessageType type) {
-        super(type);
+public abstract class WebSocketSendMessage {
+
+    private final WebSocketSendMessageType type;
+    public WebSocketSendMessageType getType() {
+        return type;
+    }
+
+    public WebSocketSendMessage(WebSocketSendMessageType type) {
+        this.type = type;
     }
 
     public abstract String toJson();

@@ -1,5 +1,6 @@
 package gg.wil.imposter.services;
 
+import gg.wil.imposter.ImposterApplication;
 import gg.wil.imposter.api.messages.LobbyResponse;
 import gg.wil.imposter.exception.LobbyException;
 import gg.wil.imposter.exception.WebSocketException;
@@ -32,7 +33,8 @@ public class LobbyService {
         Lobby lobby = Lobby.create(host);
         if(lobby == null) return Mono.error(new CantCreateLobbyException());
         lobbyRepo.addLobby(lobby);
-        return Mono.just(new LobbyResponse(lobby.getLobbyCode(), "ws://localhost:8080/ws/lobby/", host.getUUID().toString()));
+        String websocketURL = ImposterApplication.WEBSOCKET_URL + lobby.getLobbyCode();
+        return Mono.just(new LobbyResponse(lobby.getLobbyCode(), host.getUUID().toString(), websocketURL));
     }
 
     public final Mono<LobbyResponse> joinLobby(String lobbyCode, String username) {
@@ -44,7 +46,8 @@ public class LobbyService {
         } catch (LobbyException e) {
             return Mono.error(e);
         }
-        return Mono.just(new LobbyResponse(lobby.getLobbyCode(), "ws://localhost:8080/ws/lobby/", player.getUUID().toString()));
+        String websocketURL = ImposterApplication.WEBSOCKET_URL + lobby.getLobbyCode();
+        return Mono.just(new LobbyResponse(lobby.getLobbyCode(), player.getUUID().toString(), websocketURL));
     }
 
     public final void playerConnected(String lobbyCode, UUID playerID, WebSocketSession session, Sinks.Many<String> outgoingSink) {

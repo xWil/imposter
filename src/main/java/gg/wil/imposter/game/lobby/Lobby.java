@@ -6,6 +6,7 @@ import gg.wil.imposter.api.messages.websocket.send.SendPlayerListMessage;
 import gg.wil.imposter.exception.LobbyException;
 import gg.wil.imposter.exception.lobby.AlreadyInLobbyException;
 import gg.wil.imposter.exception.lobby.InProgressException;
+import gg.wil.imposter.game.Game;
 import gg.wil.imposter.game.Player;
 import gg.wil.imposter.repo.LobbyRepo;
 import org.springframework.web.reactive.socket.WebSocketSession;
@@ -23,10 +24,13 @@ public class Lobby {
     private final Player host;
     private final ConcurrentHashMap<UUID, Player> players = new ConcurrentHashMap<>();
 
+    private final Game game;
+
     private Lobby(String lobbyCode, Player host) {
         this.lobbyCode = lobbyCode;
         this.state = LobbyState.WAITING;
         this.host = host;
+        this.game = new Game();
     }
 
     public final String getLobbyCode() {

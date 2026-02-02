@@ -15,7 +15,7 @@ public class Game {
 
     public Game(Lobby lobby) {
         this.lobby = lobby;
-        this.gameThread = new GameThread(this);
+        this.gameThread = new GameThread(this, lobby);
         this.gameThread.start();
     }
 

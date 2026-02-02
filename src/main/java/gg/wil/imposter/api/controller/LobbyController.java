@@ -7,6 +7,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/lobby")
+@CrossOrigin(origins = "http://localhost:3000")
 public class LobbyController {
 
     private final LobbyService lobbyService;

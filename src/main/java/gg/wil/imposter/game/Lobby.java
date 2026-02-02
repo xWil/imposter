@@ -10,6 +10,8 @@ import gg.wil.imposter.exception.LobbyException;
 import gg.wil.imposter.exception.lobby.AlreadyInLobbyException;
 import gg.wil.imposter.exception.lobby.InProgressException;
 import gg.wil.imposter.repo.LobbyRepo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
@@ -20,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class Lobby {
 
+    private final Logger logger;
     private final String lobbyCode;
     private LobbyState state;
     private final Player host;
@@ -28,6 +31,8 @@ public class Lobby {
     private final Game game;
 
     private Lobby(String lobbyCode, Player host) {
+        logger = LoggerFactory.getLogger("Lobby-" + lobbyCode);
+        logger.info("Lobby created with code {}", lobbyCode);
         this.lobbyCode = lobbyCode;
         this.state = LobbyState.WAITING;
         this.host = host;
@@ -69,6 +74,7 @@ public class Lobby {
         } else {
             player = this.players.get(playerID);
         }
+        logger.info("Player {} connected to the lobby with username '{}'", player.getUUID(), player.getUsername());
         broadcast(new SendPlayerJoinMessage(player));
         player.playerConnected(session, outgoingSink);
         player.sendMessage(new SendPlayerListMessage(this.host, this.players.values()));
@@ -78,10 +84,11 @@ public class Lobby {
         Player player = players.get(playerID);
         if(player == null) {
             if(playerID.equals(host.getUUID())) {
-                // HOST DISCONNECTED!!! NOT GOOD
+                logger.info("Host disconnected from the lobby");
                 player = host;
             } else return;
         }
+        logger.info("Player {} disconnected from the lobby", player.getUUID());
         player.playerDisconnected();
     }
 

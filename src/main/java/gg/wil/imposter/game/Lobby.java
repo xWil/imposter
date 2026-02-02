@@ -1,4 +1,4 @@
-package gg.wil.imposter.game.lobby;
+package gg.wil.imposter.game;
 
 import gg.wil.imposter.api.messages.websocket.WebSocketSendMessage;
 import gg.wil.imposter.api.messages.websocket.send.SendPlayerJoinMessage;
@@ -6,8 +6,6 @@ import gg.wil.imposter.api.messages.websocket.send.SendPlayerListMessage;
 import gg.wil.imposter.exception.LobbyException;
 import gg.wil.imposter.exception.lobby.AlreadyInLobbyException;
 import gg.wil.imposter.exception.lobby.InProgressException;
-import gg.wil.imposter.game.Game;
-import gg.wil.imposter.game.Player;
 import gg.wil.imposter.repo.LobbyRepo;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
@@ -120,5 +118,11 @@ public class Lobby {
             success = LobbyRepo.getInstance().getLobby(code.toString()) == null;
         }
         return code.toString();
+    }
+
+    public enum LobbyState {
+        WAITING,
+        PLAYING,
+        ENDED
     }
 }

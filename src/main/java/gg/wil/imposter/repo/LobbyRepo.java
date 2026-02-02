@@ -1,6 +1,6 @@
 package gg.wil.imposter.repo;
 
-import gg.wil.imposter.game.lobby.Lobby;
+import gg.wil.imposter.game.Lobby;
 import org.springframework.stereotype.Repository;
 
 import java.util.concurrent.ConcurrentHashMap;

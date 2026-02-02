@@ -8,7 +8,7 @@ import gg.wil.imposter.exception.lobby.LobbyNotFoundException;
 import gg.wil.imposter.exception.websocket.InvalidLobbyCodeException;
 import gg.wil.imposter.exception.websocket.InvalidPlayerIdException;
 import gg.wil.imposter.game.Player;
-import gg.wil.imposter.game.lobby.Lobby;
+import gg.wil.imposter.game.Lobby;
 import gg.wil.imposter.repo.LobbyRepo;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.socket.WebSocketSession;

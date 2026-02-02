@@ -106,7 +106,7 @@ public class Lobby {
 
     ///  STATIC
 
-    private static final char[] allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".toCharArray();
+    private static final char[] allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 
     public static Lobby create(Player host) {
         String code = generateNewLobbyCode();

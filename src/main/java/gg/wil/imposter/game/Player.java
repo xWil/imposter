@@ -11,6 +11,8 @@ public class Player {
     private final UUID uuid;
     private final String username;
 
+    private IconData iconData;
+
     private WebSocketSession session;
     private Sinks.Many<String> outgoingSink;
 
@@ -33,6 +35,14 @@ public class Player {
 
     public Sinks.Many<String> getOutgoingSink() {
         return this.outgoingSink;
+    }
+
+    public void setIconData(IconData iconData) {
+        this.iconData = iconData;
+    }
+
+    public IconData getIconData() {
+        return this.iconData;
     }
 
     public void playerConnected(WebSocketSession session, Sinks.Many<String> outgoingSink) {

@@ -10,20 +10,13 @@ import java.util.Collection;
 
 public final class SendPlayerListMessage extends WebSocketSendMessage {
 
-    private final Player host;
     private final Collection<Player> playerList;
-
-    public Player getHost() {
-        return host;
-    }
-
     public Collection<Player> getPlayerList() {
         return playerList;
     }
 
-    public SendPlayerListMessage(Player host, Collection<Player> playerList) {
+    public SendPlayerListMessage(Collection<Player> playerList) {
         super(WebSocketSendMessageType.PLAYER_LIST);
-        this.host = host;
         this.playerList = playerList;
     }
 

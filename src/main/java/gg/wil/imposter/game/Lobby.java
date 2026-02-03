@@ -75,9 +75,7 @@ public class Lobby {
             player = this.players.get(playerID);
         }
         logger.info("Player {} connected to the lobby with username '{}'", player.getUUID(), player.getUsername());
-        broadcast(new SendPlayerJoinMessage(player));
         player.playerConnected(session, outgoingSink);
-        player.sendMessage(new SendPlayerListMessage(this.host, this.players.values()));
     }
 
     public final void playerDisconnected(UUID playerID) {
@@ -109,6 +107,17 @@ public class Lobby {
     public final void broadcast(WebSocketSendMessage message) {
         host.sendMessage(message);
         players.values().forEach(player -> player.sendMessage(message));
+    }
+
+    public final void broadcastToPlayers(WebSocketSendMessage message) {
+        players.values().forEach(player -> player.sendMessage(message));
+    }
+
+    public final void broadcastExcludePlayer(WebSocketSendMessage message, UUID exclude) {
+        if(!host.getUUID().equals(exclude)) host.sendMessage(message);
+        players.values().forEach(player -> {
+            if(!player.getUUID().equals(exclude)) player.sendMessage(message);
+        });
     }
 
     ///  STATIC

@@ -6,15 +6,15 @@ import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessageType;
 import gg.wil.imposter.game.IconData;
 import gg.wil.imposter.game.Player;
 
-public class ReceiveIconChangeMessage extends WebSocketReceiveMessage {
+public class ReceivePlayerJoinMessage extends WebSocketReceiveMessage {
 
     private final IconData iconData;
     public IconData getIconData() {
         return iconData;
     }
 
-    public ReceiveIconChangeMessage(Player from, JsonObject json) {
-        super(WebSocketReceiveMessageType.ICON_CHANGE, from);
+    public ReceivePlayerJoinMessage(Player from, JsonObject json) {
+        super(WebSocketReceiveMessageType.PLAYER_JOIN, from);
 
         String shape = json.get("shape").getAsString();
         String shapeColor = json.get("shapeColor").getAsString();

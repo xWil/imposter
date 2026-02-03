@@ -2,6 +2,9 @@ package gg.wil.imposter.game;
 
 import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
 import gg.wil.imposter.api.messages.websocket.receive.ReceiveIconChangeMessage;
+import gg.wil.imposter.api.messages.websocket.receive.ReceivePlayerJoinMessage;
+import gg.wil.imposter.api.messages.websocket.send.SendPlayerJoinMessage;
+import gg.wil.imposter.api.messages.websocket.send.SendPlayerListMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +67,14 @@ public class GameThread extends Thread {
         for(WebSocketReceiveMessage message : messages) {
             switch (message) {
                 case ReceiveIconChangeMessage receiveIconChangeMessage -> {
-                    System.out.println("Icon change message received from " + receiveIconChangeMessage.getFrom().getUUID());
+                    receiveIconChangeMessage.getFrom().setIconData(receiveIconChangeMessage.getIconData());
+                    // TODO: broadcast icon change
+                }
+                case ReceivePlayerJoinMessage receivePlayerJoinMessage -> {
+                    Player from = receivePlayerJoinMessage.getFrom();
+                    from.setIconData(receivePlayerJoinMessage.getIconData());
+                    lobby.broadcastExcludePlayer(new SendPlayerJoinMessage(from), from.getUUID());
+                    from.sendMessage(new SendPlayerListMessage(lobby.getPlayers()));
                 }
                 default -> {
                     logger.error("Unknown message type: {}", message.getType());

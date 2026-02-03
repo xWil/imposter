@@ -22,6 +22,7 @@ public abstract class WebSocketSendMessage {
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("uuid", src.getUUID().toString());
             jsonObject.addProperty("username", src.getUsername());
+            jsonObject.add("icon", src.getIconData().toJsonElement());
             return jsonObject;
         };
     }

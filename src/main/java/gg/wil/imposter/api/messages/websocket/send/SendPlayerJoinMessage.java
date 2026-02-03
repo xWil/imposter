@@ -8,16 +8,16 @@ import gg.wil.imposter.game.Player;
 
 public class SendPlayerJoinMessage extends WebSocketSendMessage {
 
-    private final Player player;
+    private final Player data;
+    public Player getPlayer() {
+        return data;
+    }
 
     public SendPlayerJoinMessage(Player player) {
         super(WebSocketSendMessageType.PLAYER_JOIN);
-        this.player = player;
+        this.data = player;
     }
 
-    public Player getPlayer() {
-        return player;
-    }
     @Override
     public String toJson() {
         Gson gson = new GsonBuilder().registerTypeAdapter(Player.class, getPlayerTypeAdapter()).create();

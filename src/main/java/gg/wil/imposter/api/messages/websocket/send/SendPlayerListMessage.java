@@ -10,14 +10,14 @@ import java.util.Collection;
 
 public final class SendPlayerListMessage extends WebSocketSendMessage {
 
-    private final Collection<Player> playerList;
+    private final Collection<Player> data;
     public Collection<Player> getPlayerList() {
-        return playerList;
+        return data;
     }
 
     public SendPlayerListMessage(Collection<Player> playerList) {
         super(WebSocketSendMessageType.PLAYER_LIST);
-        this.playerList = playerList;
+        this.data = playerList;
     }
 
     @Override

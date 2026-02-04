@@ -10,6 +10,7 @@ import gg.wil.imposter.exception.LobbyException;
 import gg.wil.imposter.exception.lobby.AlreadyInLobbyException;
 import gg.wil.imposter.exception.lobby.InProgressException;
 import gg.wil.imposter.repo.LobbyRepo;
+import gg.wil.imposter.util.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.socket.WebSocketSession;
@@ -37,6 +38,13 @@ public class Lobby {
         this.state = LobbyState.WAITING;
         this.host = host;
         this.game = new Game(this);
+
+        // If the host doesn't connect to the websocket within 5 seconds, delete the lobby
+        Scheduler.INSTANCE.runTaskLater(() -> {
+            if(host.isConnected()) return;
+            logger.info("Lobby {} timed out due to the host not connecting", lobbyCode);
+            LobbyRepo.getInstance().removeLobby(lobbyCode);
+        }, 5000);
     }
 
     public final String getLobbyCode() {
@@ -64,6 +72,11 @@ public class Lobby {
         if(this.players.containsKey(player.getUUID())) throw new AlreadyInLobbyException(this.lobbyCode);
 
         this.players.put(player.getUUID(), player);
+        // remove player from the lobby if they don't connect to the websocket within 5 seconds
+        Scheduler.INSTANCE.runTaskLater(() -> {
+            if(player.isConnected()) return;
+            this.players.remove(player.getUUID());
+        }, 5000);
     }
 
     public final void playerConnected(UUID playerID, WebSocketSession session, Sinks.Many<String> outgoingSink) {

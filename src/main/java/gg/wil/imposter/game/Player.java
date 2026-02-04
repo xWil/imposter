@@ -29,6 +29,10 @@ public class Player {
         return this.username;
     }
 
+    public boolean isConnected() {
+        return this.session != null;
+    }
+
     public WebSocketSession getSession() {
         return this.session;
     }

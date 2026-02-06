@@ -54,6 +54,12 @@ public class Player {
         this.outgoingSink = outgoingSink;
     }
 
+    public void disconnectPlayer() {
+        if(this.session == null) return;
+        this.session.close().subscribe();
+        playerDisconnected();
+    }
+
     public void playerDisconnected() {
         this.session = null;
         this.outgoingSink = null;

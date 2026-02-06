@@ -43,7 +43,7 @@ public class Lobby {
         Scheduler.INSTANCE.runTaskLater(() -> {
             if(host.isConnected()) return;
             logger.info("Lobby {} timed out due to the host not connecting", lobbyCode);
-            LobbyRepo.getInstance().removeLobby(lobbyCode);
+            closeLobby();
         }, 5000);
     }
 
@@ -104,7 +104,9 @@ public class Lobby {
     }
 
     public final Mono<Void> receiveMessage(UUID playerID, String message) {
-        if(!players.containsKey(playerID)) return Mono.empty();
+        System.out.println(message);
+        if(!players.containsKey(playerID) && !playerID.equals(host.getUUID())) return Mono.empty();
+        System.out.println(message);
         try {
             JsonObject object = JsonParser.parseString(message).getAsJsonObject();
             String typeString = object.get("type").getAsString();
@@ -112,7 +114,10 @@ public class Lobby {
 
             WebSocketReceiveMessageType type = WebSocketReceiveMessageType.valueOf(typeString);
             JsonObject data = object.getAsJsonObject("data");
-            game.receiveMessage(type.create(players.get(playerID), data));
+
+            Player player = players.get(playerID);
+            if(player == null) player = host;
+            game.receiveMessage(type.create(player, data));
         } catch (Exception ignored) {}
         return Mono.empty();
     }
@@ -131,6 +136,12 @@ public class Lobby {
         players.values().forEach(player -> {
             if(!player.getUUID().equals(exclude)) player.sendMessage(message);
         });
+    }
+
+    public final void closeLobby() {
+        this.state = LobbyState.ENDED;
+        for(Player player : players.values()) player.disconnectPlayer();
+        LobbyRepo.getInstance().removeLobby(this.lobbyCode);
     }
 
     ///  STATIC

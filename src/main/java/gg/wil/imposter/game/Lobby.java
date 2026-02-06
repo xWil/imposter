@@ -7,6 +7,7 @@ import gg.wil.imposter.api.messages.websocket.WebSocketSendMessage;
 import gg.wil.imposter.exception.LobbyException;
 import gg.wil.imposter.exception.lobby.AlreadyInLobbyException;
 import gg.wil.imposter.exception.lobby.InProgressException;
+import gg.wil.imposter.exception.lobby.LobbyFullException;
 import gg.wil.imposter.repo.LobbyRepo;
 import gg.wil.imposter.util.Scheduler;
 import org.slf4j.Logger;
@@ -67,6 +68,7 @@ public class Lobby {
 
     public final void addPlayer(Player player) throws LobbyException {
         if(this.state != LobbyState.WAITING) throw new InProgressException(this.lobbyCode);
+        if(this.players.size() >= 8) throw new LobbyFullException(this.lobbyCode);
         if(this.players.containsKey(player.getUUID())) throw new AlreadyInLobbyException(this.lobbyCode);
 
         this.players.put(player.getUUID(), player);
@@ -75,6 +77,10 @@ public class Lobby {
             if(player.isConnected()) return;
             this.players.remove(player.getUUID());
         }, 5000);
+    }
+
+    public final void removePlayer(UUID uuid) {
+        this.players.remove(uuid);
     }
 
     public final void playerConnected(UUID playerID, WebSocketSession session, Sinks.Many<String> outgoingSink) {
@@ -100,6 +106,7 @@ public class Lobby {
         }
         logger.info("Player {} disconnected from the lobby", player.getUUID());
         player.playerDisconnected();
+        if(this.state != LobbyState.PLAYING) removePlayer(playerID);
     }
 
     public final Mono<Void> receiveMessage(UUID playerID, String message) {

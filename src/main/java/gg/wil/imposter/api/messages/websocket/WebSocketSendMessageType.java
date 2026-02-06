@@ -5,6 +5,7 @@ import gg.wil.imposter.api.messages.websocket.send.*;
 public enum WebSocketSendMessageType {
     GAME_START_ERROR(SendGameStartErrorMessage.class),
     HOST_LEAVE(SendHostLeaveMessage.class),
+    ICON_CHANGE(SendIconChangeMessage.class),
     PLAYER_JOIN(SendPlayerJoinMessage.class),
     PLAYER_LEAVE(SendPlayerLeaveMessage.class),
     PLAYER_LIST(SendPlayerListMessage.class);

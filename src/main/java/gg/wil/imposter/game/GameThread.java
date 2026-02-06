@@ -107,8 +107,9 @@ public class GameThread extends Thread {
     }
 
     private void handleIconChangeMessage(ReceiveIconChangeMessage message) {
-        message.getFrom().setIconData(message.getIconData());
-        // TODO: broadcast icon change
+        Player from = message.getFrom();
+        from.setIconData(message.getIconData());
+        lobby.broadcastExcludePlayer(new SendIconChangeMessage(from), from.getUUID());
     }
 
     private void handlePlayerJoinMessage(ReceivePlayerJoinMessage message) {

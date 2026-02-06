@@ -29,6 +29,7 @@ public class SendGameStartErrorMessage extends WebSocketSendMessage {
     }
 
     public enum ErrorType {
+        ALREADY_STARTED,
         NOT_ENOUGH_PLAYERS,
         NOT_HOST;
     }

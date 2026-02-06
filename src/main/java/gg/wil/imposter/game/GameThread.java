@@ -84,7 +84,6 @@ public class GameThread extends Thread {
     }
 
     private void handleGameStartMessage(ReceiveGameStartMessage message) {
-        System.out.println("Received game start message");
         Player from = message.getFrom();
         if(from != lobby.getHost()) {
             // not host
@@ -96,8 +95,12 @@ public class GameThread extends Thread {
             from.sendMessage(new SendGameStartErrorMessage(SendGameStartErrorMessage.ErrorType.NOT_ENOUGH_PLAYERS));
             return;
         }
+        if(this.gameMode != null) {
+            // already started
+            from.sendMessage(new SendGameStartErrorMessage(SendGameStartErrorMessage.ErrorType.ALREADY_STARTED));
+            return;
+        }
         // start game
-        if(this.gameMode != null) return;
         this.gameMode = message.getMode().create(lobby, game);
         this.game.setGameMode(gameMode);
         gameMode.startGame();

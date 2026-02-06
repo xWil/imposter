@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessageType;
 import gg.wil.imposter.api.messages.websocket.WebSocketSendMessage;
+import gg.wil.imposter.api.messages.websocket.send.SendPlayerLeaveMessage;
 import gg.wil.imposter.exception.LobbyException;
 import gg.wil.imposter.exception.lobby.AlreadyInLobbyException;
 import gg.wil.imposter.exception.lobby.InProgressException;
@@ -106,7 +107,10 @@ public class Lobby {
         }
         logger.info("Player {} disconnected from the lobby", player.getUUID());
         player.playerDisconnected();
-        if(this.state != LobbyState.PLAYING) removePlayer(playerID);
+        if(this.state != LobbyState.PLAYING) {
+            removePlayer(playerID);
+            broadcast(new SendPlayerLeaveMessage(playerID));
+        }
     }
 
     public final Mono<Void> receiveMessage(UUID playerID, String message) {

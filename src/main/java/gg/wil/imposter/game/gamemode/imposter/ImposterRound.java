@@ -6,9 +6,7 @@ import gg.wil.imposter.game.Game;
 import gg.wil.imposter.game.Lobby;
 import gg.wil.imposter.game.Player;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Random;
+import java.util.*;
 
 public class ImposterRound {
 
@@ -21,6 +19,7 @@ public class ImposterRound {
     private Player imposter;
     private String currentQuestion;
     private String imposterQuestion;
+    private Map<UUID, String> answers = new HashMap<>();
 
     public ImposterRound(Lobby lobby, Game game, int roundNumber, int maxRounds, int time) {
         this.lobby = lobby;
@@ -52,5 +51,9 @@ public class ImposterRound {
         this.lobby.getHost().sendMessage(new SendAnsweringStartMessage(this.roundNumber, this.maxRounds, this.time));
         this.lobby.broadcastExcludePlayer(questionMessage, imposter.getUUID());
         this.imposter.sendMessage(imposterQuestionMessage);
+    }
+
+    public void receiveAnswer(UUID playerUUID, String answer) {
+        answers.put(playerUUID, answer);
     }
 }

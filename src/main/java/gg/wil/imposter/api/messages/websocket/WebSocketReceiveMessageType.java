@@ -5,6 +5,7 @@ import gg.wil.imposter.api.messages.websocket.receive.*;
 import gg.wil.imposter.game.Player;
 
 public enum WebSocketReceiveMessageType {
+    ANSWER_SUBMIT(ReceiveAnswerSubmitMessage::new),
     GAME_START(ReceiveGameStartMessage::new),
     ICON_CHANGE(ReceiveIconChangeMessage::new),
     INTRO_FINISHED(ReceiveIntroFinishedMessage::new),

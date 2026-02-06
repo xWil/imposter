@@ -1,11 +1,9 @@
 package gg.wil.imposter.api.messages.websocket;
 
-import gg.wil.imposter.api.messages.websocket.send.SendHostLeaveMessage;
-import gg.wil.imposter.api.messages.websocket.send.SendPlayerJoinMessage;
-import gg.wil.imposter.api.messages.websocket.send.SendPlayerLeaveMessage;
-import gg.wil.imposter.api.messages.websocket.send.SendPlayerListMessage;
+import gg.wil.imposter.api.messages.websocket.send.*;
 
 public enum WebSocketSendMessageType {
+    GAME_START_ERROR(SendGameStartErrorMessage.class),
     HOST_LEAVE(SendHostLeaveMessage.class),
     PLAYER_JOIN(SendPlayerJoinMessage.class),
     PLAYER_LEAVE(SendPlayerLeaveMessage.class),

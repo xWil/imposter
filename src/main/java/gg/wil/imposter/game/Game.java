@@ -1,6 +1,7 @@
 package gg.wil.imposter.game;
 
 import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
+import gg.wil.imposter.game.gamemode.GameMode;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -10,6 +11,7 @@ public class Game {
 
     private final Lobby lobby;
     private final GameThread gameThread;
+    private GameMode gameMode;
 
     private final CopyOnWriteArraySet<WebSocketReceiveMessage> unprocessedMessages = new CopyOnWriteArraySet<>();
 
@@ -19,8 +21,17 @@ public class Game {
         this.gameThread.start();
     }
 
+    public void setGameMode(GameMode gameMode) {
+        this.gameMode = gameMode;
+    }
+
+    public GameMode getGameMode() {
+        return gameMode;
+    }
+
     public void stopGame() {
         gameThread.stopGame();
+        lobby.closeLobby();
     }
 
     public void receiveMessage(WebSocketReceiveMessage message) {

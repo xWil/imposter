@@ -1,13 +1,12 @@
 package gg.wil.imposter.game;
 
 import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
+import gg.wil.imposter.api.messages.websocket.receive.ReceiveGameStartMessage;
 import gg.wil.imposter.api.messages.websocket.receive.ReceiveIconChangeMessage;
 import gg.wil.imposter.api.messages.websocket.receive.ReceivePlayerJoinMessage;
 import gg.wil.imposter.api.messages.websocket.receive.ReceivePlayerLeaveMessage;
-import gg.wil.imposter.api.messages.websocket.send.SendHostLeaveMessage;
-import gg.wil.imposter.api.messages.websocket.send.SendPlayerJoinMessage;
-import gg.wil.imposter.api.messages.websocket.send.SendPlayerLeaveMessage;
-import gg.wil.imposter.api.messages.websocket.send.SendPlayerListMessage;
+import gg.wil.imposter.api.messages.websocket.send.*;
+import gg.wil.imposter.game.gamemode.GameMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +17,8 @@ public class GameThread extends Thread {
     private final Logger logger;
     private final Game game;
     private final Lobby lobby;
+
+    private GameMode gameMode;
 
     private boolean running = true;
 
@@ -69,30 +70,59 @@ public class GameThread extends Thread {
         Set<WebSocketReceiveMessage> messages = game.getUnprocessedMessages(true);
         for(WebSocketReceiveMessage message : messages) {
             switch (message) {
-                case ReceiveIconChangeMessage receiveIconChangeMessage -> {
-                    receiveIconChangeMessage.getFrom().setIconData(receiveIconChangeMessage.getIconData());
-                    // TODO: broadcast icon change
-                }
-                case ReceivePlayerJoinMessage receivePlayerJoinMessage -> {
-                    Player from = receivePlayerJoinMessage.getFrom();
-                    from.setIconData(receivePlayerJoinMessage.getIconData());
-                    lobby.broadcastExcludePlayer(new SendPlayerJoinMessage(from), from.getUUID());
-                    from.sendMessage(new SendPlayerListMessage(lobby.getPlayers()));
-                }
-                case ReceivePlayerLeaveMessage receivePlayerLeaveMessage -> {
-                    Player from = receivePlayerLeaveMessage.getFrom();
-                    if(lobby.getHost() == from) {
-                        lobby.broadcastToPlayers(new SendHostLeaveMessage());
-                        lobby.closeLobby();
-                        return;
-                    }
-                    lobby.broadcastExcludePlayer(new SendPlayerLeaveMessage(from.getUUID()), from.getUUID());
-                }
+                case ReceiveGameStartMessage receiveGameStartMessage -> handleGameStartMessage(receiveGameStartMessage);
+                case ReceiveIconChangeMessage receiveIconChangeMessage -> handleIconChangeMessage(receiveIconChangeMessage);
+                case ReceivePlayerJoinMessage receivePlayerJoinMessage -> handlePlayerJoinMessage(receivePlayerJoinMessage);
+                case ReceivePlayerLeaveMessage receivePlayerLeaveMessage -> handlePlayerLeaveMessage(receivePlayerLeaveMessage);
                 default -> {
-                    logger.error("Unknown message type: {}", message.getType());
+                    if(gameMode != null) {
+                        gameMode.handleMessage(message);
+                    }
                 }
             }
         }
+    }
+
+    private void handleGameStartMessage(ReceiveGameStartMessage message) {
+        System.out.println("Received game start message");
+        Player from = message.getFrom();
+        if(from != lobby.getHost()) {
+            // not host
+            from.sendMessage(new SendGameStartErrorMessage(SendGameStartErrorMessage.ErrorType.NOT_HOST));
+            return;
+        }
+        if(lobby.getPlayers().size() < 3) {
+            // not enough players
+            from.sendMessage(new SendGameStartErrorMessage(SendGameStartErrorMessage.ErrorType.NOT_ENOUGH_PLAYERS));
+            return;
+        }
+        // start game
+        if(this.gameMode != null) return;
+        this.gameMode = message.getMode().create(lobby, game);
+        this.game.setGameMode(gameMode);
+        gameMode.startGame();
+    }
+
+    private void handleIconChangeMessage(ReceiveIconChangeMessage message) {
+        message.getFrom().setIconData(message.getIconData());
+        // TODO: broadcast icon change
+    }
+
+    private void handlePlayerJoinMessage(ReceivePlayerJoinMessage message) {
+        Player from = message.getFrom();
+        from.setIconData(message.getIconData());
+        lobby.broadcastExcludePlayer(new SendPlayerJoinMessage(from), from.getUUID());
+        from.sendMessage(new SendPlayerListMessage(lobby.getPlayers()));
+    }
+
+    private void handlePlayerLeaveMessage(ReceivePlayerLeaveMessage message) {
+        Player from = message.getFrom();
+        if(lobby.getHost() == from) {
+            lobby.broadcastToPlayers(new SendHostLeaveMessage());
+            lobby.closeLobby();
+            return;
+        }
+        lobby.broadcastExcludePlayer(new SendPlayerLeaveMessage(from.getUUID()), from.getUUID());
     }
 
     public void stopGame() {

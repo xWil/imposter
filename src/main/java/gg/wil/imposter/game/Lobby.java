@@ -4,8 +4,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessageType;
 import gg.wil.imposter.api.messages.websocket.WebSocketSendMessage;
-import gg.wil.imposter.api.messages.websocket.send.SendPlayerJoinMessage;
-import gg.wil.imposter.api.messages.websocket.send.SendPlayerListMessage;
 import gg.wil.imposter.exception.LobbyException;
 import gg.wil.imposter.exception.lobby.AlreadyInLobbyException;
 import gg.wil.imposter.exception.lobby.InProgressException;
@@ -96,6 +94,7 @@ public class Lobby {
         if(player == null) {
             if(playerID.equals(host.getUUID())) {
                 logger.info("Host disconnected from the lobby");
+                closeLobby();
                 player = host;
             } else return;
         }

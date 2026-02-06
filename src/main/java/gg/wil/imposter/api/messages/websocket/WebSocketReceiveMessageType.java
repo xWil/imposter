@@ -1,15 +1,13 @@
 package gg.wil.imposter.api.messages.websocket;
 
 import com.google.gson.JsonObject;
-import gg.wil.imposter.api.messages.websocket.receive.ReceiveGameStartMessage;
-import gg.wil.imposter.api.messages.websocket.receive.ReceiveIconChangeMessage;
-import gg.wil.imposter.api.messages.websocket.receive.ReceivePlayerJoinMessage;
-import gg.wil.imposter.api.messages.websocket.receive.ReceivePlayerLeaveMessage;
+import gg.wil.imposter.api.messages.websocket.receive.*;
 import gg.wil.imposter.game.Player;
 
 public enum WebSocketReceiveMessageType {
     GAME_START(ReceiveGameStartMessage::new),
     ICON_CHANGE(ReceiveIconChangeMessage::new),
+    INTRO_FINISHED(ReceiveIntroFinishedMessage::new),
     PLAYER_JOIN(ReceivePlayerJoinMessage::new),
     PLAYER_LEAVE(ReceivePlayerLeaveMessage::new);
 

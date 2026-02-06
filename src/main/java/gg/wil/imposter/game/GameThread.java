@@ -101,7 +101,7 @@ public class GameThread extends Thread {
             return;
         }
         // start game
-        this.gameMode = message.getMode().create(lobby, game);
+        this.gameMode = message.getMode().create(lobby, game, 3);
         this.game.setGameMode(gameMode);
         gameMode.startGame();
     }

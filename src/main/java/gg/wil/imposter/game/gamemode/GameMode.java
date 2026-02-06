@@ -3,15 +3,18 @@ package gg.wil.imposter.game.gamemode;
 import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
 import gg.wil.imposter.game.Game;
 import gg.wil.imposter.game.Lobby;
+import gg.wil.imposter.game.gamemode.imposter.ImposterGameMode;
 
 public abstract class GameMode {
 
     protected final Lobby lobby;
     protected final Game game;
+    protected final int maxRounds;
 
-    public GameMode(Lobby lobby, Game game) {
+    public GameMode(Lobby lobby, Game game, int maxRounds) {
         this.lobby = lobby;
         this.game = game;
+        this.maxRounds = maxRounds;
     }
 
     public abstract void startGame();
@@ -22,7 +25,7 @@ public abstract class GameMode {
         IMPOSTER(ImposterGameMode::new);
 
         private GameModeFactory factory;
-        public GameMode create(Lobby lobby, Game game) { return factory.create(lobby, game); }
+        public GameMode create(Lobby lobby, Game game, int maxRounds) { return factory.create(lobby, game, maxRounds); }
 
         Mode(GameModeFactory factory) {
             this.factory = factory;
@@ -30,6 +33,6 @@ public abstract class GameMode {
     }
 
     private interface GameModeFactory {
-        GameMode create(Lobby lobby, Game game);
+        GameMode create(Lobby lobby, Game game, int maxRounds);
     }
 }

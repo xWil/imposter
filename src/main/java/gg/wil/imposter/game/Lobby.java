@@ -63,6 +63,10 @@ public class Lobby {
         return this.players.values();
     }
 
+    public Player getPlayer(UUID uuid) {
+        return this.players.get(uuid);
+    }
+
     public boolean hasPlayer(UUID uuid) {
         return this.players.containsKey(uuid);
     }

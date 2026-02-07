@@ -3,6 +3,7 @@ package gg.wil.imposter.game.gamemode.imposter;
 import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
 import gg.wil.imposter.api.messages.websocket.receive.ReceiveAnswerSubmitMessage;
 import gg.wil.imposter.api.messages.websocket.receive.ReceiveIntroFinishedMessage;
+import gg.wil.imposter.api.messages.websocket.receive.ReceiveTimesUpMessage;
 import gg.wil.imposter.api.messages.websocket.send.SendGameStartMessage;
 import gg.wil.imposter.api.messages.websocket.send.SendPlayerFinishedAnsweringMessage;
 import gg.wil.imposter.game.Game;
@@ -45,6 +46,7 @@ public class ImposterGameMode extends GameMode {
         switch (message) {
             case ReceiveAnswerSubmitMessage receiveAnswerSubmitMessage -> handleAnswerSubmit(receiveAnswerSubmitMessage);
             case ReceiveIntroFinishedMessage receiveIntroFinishedMessage -> handleIntroFinishedMessage(receiveIntroFinishedMessage);
+            case ReceiveTimesUpMessage receiveTimesUpMessage -> handleTimesUpMessage(receiveTimesUpMessage);
             default -> {
                 this.logger.warn("Unhandled message type: {}", message.getType());
             }
@@ -56,6 +58,11 @@ public class ImposterGameMode extends GameMode {
         Player from = message.getFrom();
         this.currentRound.receiveAnswer(from.getUUID(), message.getAnswer());
         this.lobby.getHost().sendMessage(new SendPlayerFinishedAnsweringMessage(from.getUUID()));
+    }
+
+    private void handleTimesUpMessage(ReceiveTimesUpMessage message) {
+        if(currentRound == null) return;
+        currentRound.endPhase(true);
     }
 
     private void handleIntroFinishedMessage(ReceiveIntroFinishedMessage message) {

@@ -1,7 +1,9 @@
 package gg.wil.imposter.game.gamemode.imposter;
 
 import gg.wil.imposter.api.messages.websocket.send.SendAnsweringStartMessage;
+import gg.wil.imposter.api.messages.websocket.send.SendAnswersMessage;
 import gg.wil.imposter.api.messages.websocket.send.SendQuestionMessage;
+import gg.wil.imposter.api.messages.websocket.send.SendTimesUpMessage;
 import gg.wil.imposter.game.Game;
 import gg.wil.imposter.game.Lobby;
 import gg.wil.imposter.game.Player;
@@ -16,6 +18,7 @@ public class ImposterRound {
     private final int maxRounds;
     private final int time;
 
+    private Phase phase = Phase.ANSWERING;
     private Player imposter;
     private String currentQuestion;
     private String imposterQuestion;
@@ -55,5 +58,53 @@ public class ImposterRound {
 
     public void receiveAnswer(UUID playerUUID, String answer) {
         answers.put(playerUUID, answer);
+        if(this.phase == Phase.DISCUSSING && answers.size() >= lobby.getPlayers().size()) {
+            changeToDiscussingPhase();
+        }
+    }
+
+    public void endPhase(boolean outOfTime) {
+        switch(this.phase) {
+            case ANSWERING -> endAnsweringPhase(outOfTime);
+            case DISCUSSING -> endDiscussingPhase(outOfTime);
+            case VOTING -> endVotingPhase(outOfTime);
+        }
+    }
+
+    private void endAnsweringPhase(boolean outOfTime) {
+        this.phase = Phase.DISCUSSING;
+        if(outOfTime) {
+            Set<Player> unansweredPlayers = new HashSet<>(lobby.getPlayers());
+            for(UUID playerUUID : answers.keySet()) {
+                unansweredPlayers.remove(lobby.getPlayer(playerUUID));
+            }
+            if(!unansweredPlayers.isEmpty()) {
+                for(Player player : unansweredPlayers) {
+                    player.sendMessage(new SendTimesUpMessage());
+                }
+                return;
+            }
+        }
+        changeToDiscussingPhase();
+    }
+
+    private void changeToDiscussingPhase() {
+        if(this.phase != Phase.DISCUSSING) return;
+        this.lobby.getHost().sendMessage(new SendAnswersMessage(answers));
+    }
+
+    private void endDiscussingPhase(boolean outOfTime) {
+        this.phase = Phase.VOTING;
+    }
+
+    private void endVotingPhase(boolean outOfTime) {
+        this.phase = Phase.FINISHED;
+    }
+
+    public enum Phase {
+        ANSWERING,
+        DISCUSSING,
+        VOTING,
+        FINISHED
     }
 }

@@ -10,7 +10,8 @@ public enum WebSocketReceiveMessageType {
     ICON_CHANGE(ReceiveIconChangeMessage::new),
     INTRO_FINISHED(ReceiveIntroFinishedMessage::new),
     PLAYER_JOIN(ReceivePlayerJoinMessage::new),
-    PLAYER_LEAVE(ReceivePlayerLeaveMessage::new);
+    PLAYER_LEAVE(ReceivePlayerLeaveMessage::new),
+    TIMES_UP(ReceiveTimesUpMessage::new);
 
     private final ReceiveMessageFactory factory;
     public WebSocketReceiveMessage create(Player from, JsonObject json) { return factory.create(from, json); }

@@ -7,18 +7,22 @@ import gg.wil.imposter.api.messages.websocket.WebSocketSendMessageType;
 import java.util.Map;
 import java.util.UUID;
 
-public class SendAnswersMessage extends WebSocketSendMessage {
+public class SendVotingStartMessage extends WebSocketSendMessage {
 
     private final String question;
     private final int time;
     private final Map<UUID, String> answers;
 
+    public int getTime() {
+        return time;
+    }
+
     public Map<UUID, String> getAnswers() {
         return answers;
     }
 
-    public SendAnswersMessage(String question, int time, Map<UUID, String> answers) {
-        super(WebSocketSendMessageType.ANSWERS);
+    public SendVotingStartMessage(String question, int time, Map<UUID, String> answers) {
+        super(WebSocketSendMessageType.VOTING_START);
         this.question = question;
         this.time = time;
         this.answers = answers;
@@ -26,8 +30,8 @@ public class SendAnswersMessage extends WebSocketSendMessage {
 
     @Override
     public String toJson() {
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("type", getType().toString());
+        JsonObject message = new JsonObject();
+        message.addProperty("type", getType().toString());
 
         JsonObject data = new JsonObject();
         data.addProperty("question", question);
@@ -37,7 +41,7 @@ public class SendAnswersMessage extends WebSocketSendMessage {
         answers.forEach((uuid, answer) -> answersObject.addProperty(uuid.toString(), answer));
 
         data.add("answers", answersObject);
-        jsonObject.add("data", data);
-        return jsonObject.toString();
+        message.add("data", data);
+        return message.toString();
     }
 }

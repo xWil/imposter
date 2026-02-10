@@ -14,7 +14,9 @@ public enum WebSocketSendMessageType {
     PLAYER_LEAVE(SendPlayerLeaveMessage.class),
     PLAYER_LIST(SendPlayerListMessage.class),
     QUESTION(SendQuestionMessage.class),
-    TIMES_UP(SendTimesUpMessage.class);
+    TIMES_UP(SendTimesUpMessage.class),
+    VOTING_START(SendVotingStartMessage.class),
+    VOTES(SendVotesMessage.class);
 
     private final Class<?> messageClass;
     public Class<?> getMessageClass() { return messageClass; }

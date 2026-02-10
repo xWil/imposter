@@ -9,9 +9,11 @@ public enum WebSocketReceiveMessageType {
     GAME_START(ReceiveGameStartMessage::new),
     ICON_CHANGE(ReceiveIconChangeMessage::new),
     INTRO_FINISHED(ReceiveIntroFinishedMessage::new),
+    PHASE_END(ReceivePhaseEndMessage::new),
     PLAYER_JOIN(ReceivePlayerJoinMessage::new),
     PLAYER_LEAVE(ReceivePlayerLeaveMessage::new),
-    TIMES_UP(ReceiveTimesUpMessage::new);
+    TIMES_UP(ReceiveTimesUpMessage::new),
+    VOTE_SUBMIT(ReceiveVoteSubmitMessage::new);
 
     private final ReceiveMessageFactory factory;
     public WebSocketReceiveMessage create(Player from, JsonObject json) { return factory.create(from, json); }

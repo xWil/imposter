@@ -4,6 +4,7 @@ import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
 import gg.wil.imposter.api.messages.websocket.receive.*;
 import gg.wil.imposter.api.messages.websocket.send.SendGameStartMessage;
 import gg.wil.imposter.api.messages.websocket.send.SendPlayerFinishedAnsweringMessage;
+import gg.wil.imposter.api.messages.websocket.send.SendScoresMessage;
 import gg.wil.imposter.game.Game;
 import gg.wil.imposter.game.Lobby;
 import gg.wil.imposter.game.Player;
@@ -23,7 +24,7 @@ public class ImposterGameMode extends GameMode {
     private int roundNumber = 0;
     private ImposterRound currentRound;
 
-    private Map<UUID, Integer> scores = new HashMap<>();
+    private final Map<UUID, Integer> scores = new HashMap<>();
 
     public ImposterGameMode(Lobby lobby, Game game, int maxRounds) {
         super(lobby, game, maxRounds);
@@ -33,7 +34,8 @@ public class ImposterGameMode extends GameMode {
 
     @Override
     public void startGame() {
-        lobby.broadcast(new SendGameStartMessage());
+        this.lobby.broadcast(new SendGameStartMessage());
+        this.lobby.getPlayers().forEach(player -> scores.put(player.getUUID(), 0));
     }
 
     private void nextRound() {
@@ -59,6 +61,8 @@ public class ImposterGameMode extends GameMode {
             case ReceiveAnswerSubmitMessage receiveAnswerSubmitMessage -> handleAnswerSubmit(receiveAnswerSubmitMessage);
             case ReceiveIntroFinishedMessage receiveIntroFinishedMessage -> handleIntroFinishedMessage(receiveIntroFinishedMessage);
             case ReceivePhaseEndMessage receivePhaseEndMessage -> handlePhaseEndMessage(receivePhaseEndMessage);
+            case ReceiveRoundEndMessage receiveRoundEndMessage -> handleRoundEndMessage (receiveRoundEndMessage);
+            case ReceiveScoresGetMessage receiveScoresGetMessage -> handleScoresGetMessage(receiveScoresGetMessage);
             case ReceiveTimesUpMessage receiveTimesUpMessage -> handleTimesUpMessage(receiveTimesUpMessage);
             case ReceiveVoteSubmitMessage receiveVoteSubmitMessage -> handleVoteSubmit(receiveVoteSubmitMessage);
             default -> {
@@ -75,7 +79,8 @@ public class ImposterGameMode extends GameMode {
     }
 
     private void handleIntroFinishedMessage(ReceiveIntroFinishedMessage message) {
-        nextRound();
+        if(!message.getFrom().getUUID().equals(this.lobby.getHost().getUUID())) return;
+        this.nextRound();
     }
 
     private void handlePhaseEndMessage(ReceivePhaseEndMessage message) {
@@ -85,14 +90,25 @@ public class ImposterGameMode extends GameMode {
         currentRound.endPhase(false);
     }
 
+    private void handleRoundEndMessage(ReceiveRoundEndMessage message) {
+        if(!message.getFrom().getUUID().equals(this.lobby.getHost().getUUID())) return;
+        this.nextRound();
+    }
+
+    private void handleScoresGetMessage(ReceiveScoresGetMessage message) {
+        Player from = message.getFrom();
+        from.sendMessage(new SendScoresMessage(scores, !(this.roundNumber==this.maxRounds)));
+    }
+
     private void handleTimesUpMessage(ReceiveTimesUpMessage message) {
-        if(currentRound == null) return;
+        if(this.currentRound == null) return;
         Player from = message.getFrom();
         if(!from.getUUID().equals(lobby.getHost().getUUID())) return;
-        currentRound.endPhase(true);
+        this.currentRound.endPhase(true);
     }
 
     private void handleVoteSubmit(ReceiveVoteSubmitMessage message) {
+        if(this.currentRound == null) return;
         this.currentRound.receiveVote(message.getFrom().getUUID(), message.getPlayerID());
     }
 }

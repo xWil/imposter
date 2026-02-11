@@ -15,6 +15,7 @@ public enum WebSocketSendMessageType {
     PLAYER_LIST(SendPlayerListMessage.class),
     QUESTION(SendQuestionMessage.class),
     TIMES_UP(SendTimesUpMessage.class),
+    SCORES(SendScoresMessage.class),
     VOTING_START(SendVotingStartMessage.class),
     VOTES(SendVotesMessage.class);
 

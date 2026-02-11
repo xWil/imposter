@@ -98,7 +98,7 @@ public class ImposterRound {
 
     private void changeToDiscussingPhase() {
         if(this.phase != Phase.DISCUSSING) return;
-        this.lobby.getHost().sendMessage(new SendAnswersMessage(currentQuestion, 30, answers));
+        this.lobby.getHost().sendMessage(new SendAnswersMessage(currentQuestion, 15, answers));
     }
 
     private void endDiscussingPhase(boolean outOfTime) {

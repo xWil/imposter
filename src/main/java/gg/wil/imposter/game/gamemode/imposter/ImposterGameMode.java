@@ -2,6 +2,7 @@ package gg.wil.imposter.game.gamemode.imposter;
 
 import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
 import gg.wil.imposter.api.messages.websocket.receive.*;
+import gg.wil.imposter.api.messages.websocket.send.SendGameEndMessage;
 import gg.wil.imposter.api.messages.websocket.send.SendGameStartMessage;
 import gg.wil.imposter.api.messages.websocket.send.SendPlayerFinishedAnsweringMessage;
 import gg.wil.imposter.api.messages.websocket.send.SendScoresMessage;
@@ -59,6 +60,7 @@ public class ImposterGameMode extends GameMode {
     public void handleMessage(WebSocketReceiveMessage message) {
         switch (message) {
             case ReceiveAnswerSubmitMessage receiveAnswerSubmitMessage -> handleAnswerSubmit(receiveAnswerSubmitMessage);
+            case ReceiveGameEndMessage receiveGameEndMessage -> handleGameEnd(receiveGameEndMessage);
             case ReceiveIntroFinishedMessage receiveIntroFinishedMessage -> handleIntroFinishedMessage(receiveIntroFinishedMessage);
             case ReceivePhaseEndMessage receivePhaseEndMessage -> handlePhaseEndMessage(receivePhaseEndMessage);
             case ReceiveRoundEndMessage receiveRoundEndMessage -> handleRoundEndMessage (receiveRoundEndMessage);
@@ -76,6 +78,12 @@ public class ImposterGameMode extends GameMode {
         Player from = message.getFrom();
         this.currentRound.receiveAnswer(from.getUUID(), message.getAnswer());
         this.lobby.getHost().sendMessage(new SendPlayerFinishedAnsweringMessage(from.getUUID()));
+    }
+
+    private void handleGameEnd(ReceiveGameEndMessage message) {
+        if(!message.getFrom().getUUID().equals(this.lobby.getHost().getUUID())) return;
+        this.lobby.getPlayers().forEach(player -> player.sendMessage(new SendGameEndMessage()));
+        this.game.stopGame();
     }
 
     private void handleIntroFinishedMessage(ReceiveIntroFinishedMessage message) {

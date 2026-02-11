@@ -1,0 +1,46 @@
+{
+  "1": {
+    "group": "Which celebrity would you spend a weekend with?",
+    "imposter": "Who is the most evil person you can think of?"
+  },
+  "2": {
+    "group": "Who in this game is most likely to kill another man?",
+    "imposter": "Who in this game is most likely to donate to charity?"
+  },
+  "3": {
+    "group": "Where would you most like to go on your next vacation?",
+    "imposter": "What would be the worst place to go on vacation?"
+  },
+  "4": {
+    "group": "What your worst excuse for being late at work?",
+    "imposter": "Whats a valid reason to miss your own child's birth?"
+  },
+  "5": {
+    "group": "Who is the best person to clone an army of?",
+    "imposter": "Who is your favourite dictator?"
+  },
+  "6": {
+    "group": "What is something the masses forgotten about?",
+    "imposter": "What is a crazy conspiracy theory you believe?"
+  },
+  "7": {
+    "group": "Who in this game is most likely to start abusing substances?",
+    "imposter": "Who in this game is going completely sober first?"
+  },
+  "8": {
+    "group": "What would you write on your dating profile to attract the most people?",
+    "imposter": "What is your biggest red flag?"
+  },
+  "9": {
+    "group": "Who in this game has the worse haircut?",
+    "imposter": "Who in this game is going bald first?"
+  },
+  "10": {
+    "group": "What's the longest you've gone without washing?",
+    "imposter": "How many hours of sleep do you get in a night?"
+  },
+  "11": {
+    "group": "What's one word to describe {random_player}?",
+    "imposter": "What's one word to describe {random_player}?"
+  }
+}

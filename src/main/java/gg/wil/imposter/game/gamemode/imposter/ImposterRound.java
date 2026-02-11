@@ -4,6 +4,8 @@ import gg.wil.imposter.api.messages.websocket.send.*;
 import gg.wil.imposter.game.Game;
 import gg.wil.imposter.game.Lobby;
 import gg.wil.imposter.game.Player;
+import gg.wil.imposter.game.gamemode.imposter.questions.ImposterQuestions;
+import gg.wil.imposter.game.gamemode.imposter.questions.QuestionPair;
 
 import java.util.*;
 
@@ -44,8 +46,30 @@ public class ImposterRound {
     }
 
     private void getQuestions() {
-        this.currentQuestion = "Is murder a good thing?";
-        this.imposterQuestion = "Do you like spaghetti?";
+        QuestionPair pair = ImposterQuestions.getRandomQuestion();
+        while(this.gameMode.hasQuestionBeenUsed(pair.id())) {
+            pair = ImposterQuestions.getRandomQuestion();
+        }
+
+        this.gameMode.markQuestionAsUsed(pair.id());
+        this.currentQuestion = pair.question();
+        this.imposterQuestion = pair.imposterQuestion();
+
+        List<Player> players = new ArrayList<>(lobby.getPlayers());
+        Player randomPlayer1 = null;
+        if(this.currentQuestion.contains("{random_player}")) {
+            randomPlayer1 = players.get(new Random().nextInt(players.size()));
+            this.currentQuestion = this.currentQuestion.replace("{random_player}", randomPlayer1.getUsername());
+        }
+        if(this.imposterQuestion.contains("{random_player}")) {
+            Player randomPlayer2 = players.get(new Random().nextInt(players.size()));
+            if(randomPlayer1 != null) {
+                while (randomPlayer1.equals(randomPlayer2)) {
+                    randomPlayer2 = players.get(new Random().nextInt(players.size()));
+                }
+            }
+            this.imposterQuestion = this.imposterQuestion.replace("{random_player}", randomPlayer2.getUsername());
+        }
     }
 
     private void sendInitialMessages() {
@@ -98,7 +122,7 @@ public class ImposterRound {
 
     private void changeToDiscussingPhase() {
         if(this.phase != Phase.DISCUSSING) return;
-        this.lobby.getHost().sendMessage(new SendAnswersMessage(currentQuestion, 15, answers));
+        this.lobby.getHost().sendMessage(new SendAnswersMessage(currentQuestion, 30, answers));
     }
 
     private void endDiscussingPhase(boolean outOfTime) {

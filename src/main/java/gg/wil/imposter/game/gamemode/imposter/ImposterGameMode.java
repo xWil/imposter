@@ -13,15 +13,14 @@ import gg.wil.imposter.game.gamemode.GameMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class ImposterGameMode extends GameMode {
 
     private final Logger logger;
     private final int maxRounds;
 
+    private final Set<Integer> usedQuestions = new HashSet<>();
     private int roundNumber = 0;
     private ImposterRound currentRound;
 
@@ -35,17 +34,24 @@ public class ImposterGameMode extends GameMode {
 
     @Override
     public void startGame() {
+        logger.info("Starting game...");
         this.lobby.broadcast(new SendGameStartMessage());
         this.lobby.getPlayers().forEach(player -> scores.put(player.getUUID(), 0));
     }
 
     private void nextRound() {
-        if(this.roundNumber >= this.maxRounds) {
-            // TODO: end game
-            return;
-        }
+        if(this.roundNumber >= this.maxRounds) return;
         this.roundNumber++;
+        logger.info("Starting round {}", this.roundNumber);
         currentRound = new ImposterRound(this.lobby, this.game, this, this.roundNumber, this.maxRounds, 60);
+    }
+
+    public void markQuestionAsUsed(int questionID) {
+        usedQuestions.add(questionID);
+    }
+
+    public boolean hasQuestionBeenUsed(int questionID) {
+        return usedQuestions.contains(questionID);
     }
 
     public void incrementScore(UUID playerUUID, int amount) {

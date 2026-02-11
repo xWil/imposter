@@ -118,9 +118,7 @@ public class Lobby {
     }
 
     public final Mono<Void> receiveMessage(UUID playerID, String message) {
-        System.out.println(message);
         if(!players.containsKey(playerID) && !playerID.equals(host.getUUID())) return Mono.empty();
-        System.out.println(message);
         try {
             JsonObject object = JsonParser.parseString(message).getAsJsonObject();
             String typeString = object.get("type").getAsString();
@@ -153,6 +151,7 @@ public class Lobby {
     }
 
     public final void closeLobby() {
+        logger.info("Closing lobby...");
         this.state = LobbyState.ENDED;
         for(Player player : players.values()) player.disconnectPlayer();
         LobbyRepo.getInstance().removeLobby(this.lobbyCode);

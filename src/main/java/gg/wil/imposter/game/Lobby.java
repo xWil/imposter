@@ -105,8 +105,8 @@ public class Lobby {
         if(player == null) {
             if(playerID.equals(host.getUUID())) {
                 logger.info("Host disconnected from the lobby");
-                closeLobby();
-                player = host;
+                this.game.stopGame();
+                return;
             } else return;
         }
         logger.info("Player {} disconnected from the lobby", player.getUUID());

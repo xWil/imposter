@@ -16,7 +16,7 @@ public class ImposterApplication {
     }
 
     public static void main(String[] args) {
-        WEBSOCKET_URL = "ws://localhost:8080/ws/lobby/";
+        WEBSOCKET_URL = "wss://imposter.wil.gg/ws/lobby/";
         SpringApplication.run(ImposterApplication.class, args);
     }
 

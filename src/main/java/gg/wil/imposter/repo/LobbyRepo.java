@@ -20,7 +20,7 @@ public class LobbyRepo {
 
     public final boolean addLobby(Lobby lobby) {
         if(lobby == null) return false;
-        if(lobbies.containsKey(lobby.getLobbyCode())) return false;
+        if(lobbies.containsKey(lobby.getLobbyCode().toUpperCase())) return false;
 
         lobbies.put(lobby.getLobbyCode(), lobby);
         return true;

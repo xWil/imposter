@@ -1,7 +1,7 @@
 {
   "1": {
     "group": "Which celebrity would you spend a weekend with?",
-    "imposter": "Who is the most evil person you can think of?"
+    "imposter": "Which celebrity has the worst reputation?"
   },
   "2": {
     "group": "Who in this game is most likely to kill another man?",
@@ -12,15 +12,15 @@
     "imposter": "What would be the worst place to go on vacation?"
   },
   "4": {
-    "group": "What your worst excuse for being late at work?",
-    "imposter": "Whats a valid reason to miss your own child's birth?"
+    "group": "What wouldn't you miss even if it meant skipping your child's birth?",
+    "imposter": "Why did you last skip work?"
   },
   "5": {
     "group": "Who is the best person to clone an army of?",
-    "imposter": "Who is your favourite dictator?"
+    "imposter": "Who are you most afraid of?"
   },
   "6": {
-    "group": "What is something the masses forgotten about?",
+    "group": "What is something the average person has forgotten about?",
     "imposter": "What is a crazy conspiracy theory you believe?"
   },
   "7": {
@@ -36,7 +36,7 @@
     "imposter": "Who in this game is going bald first?"
   },
   "10": {
-    "group": "What's the longest you've gone without washing?",
+    "group": "What's the longest number of days you've gone without washing?",
     "imposter": "How many hours of sleep do you get in a night?"
   },
   "11": {

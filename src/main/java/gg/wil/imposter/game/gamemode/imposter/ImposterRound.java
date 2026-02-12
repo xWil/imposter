@@ -133,7 +133,6 @@ public class ImposterRound {
 
     private void endVotingPhase(boolean outOfTime) {
         this.phase = Phase.FINISHED;
-        SendVotesMessage message = new SendVotesMessage(votes);
         if(outOfTime) {
             Set<Player> unansweredPlayers = new HashSet<>(lobby.getPlayers());
             for(UUID playerUUID : votes.keySet()) {
@@ -145,6 +144,7 @@ public class ImposterRound {
                 }
             }
         }
+        SendVotesMessage message = new SendVotesMessage(votes, imposter.getUUID());
         this.lobby.getHost().sendMessage(message);
 
         // calculate scores

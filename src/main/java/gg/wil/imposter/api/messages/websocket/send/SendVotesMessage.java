@@ -10,10 +10,12 @@ import java.util.UUID;
 public class SendVotesMessage extends WebSocketSendMessage {
 
     private final Map<UUID, UUID> votes;
+    private final UUID imposter;
 
-    public SendVotesMessage(Map<UUID, UUID> votes) {
+    public SendVotesMessage(Map<UUID, UUID> votes, UUID imposter) {
         super(WebSocketSendMessageType.VOTES);
         this.votes = votes;
+        this.imposter = imposter;
     }
 
     @Override
@@ -26,6 +28,7 @@ public class SendVotesMessage extends WebSocketSendMessage {
         JsonObject votesObject = new JsonObject();
         votes.forEach((uuid, vote) -> votesObject.addProperty(uuid.toString(), vote.toString()));
         data.add("votes", votesObject);
+        data.addProperty("imposter", imposter.toString());
 
         message.add("data", data);
         return message.toString();

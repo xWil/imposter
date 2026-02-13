@@ -9,11 +9,11 @@
   },
   "3": {
     "group": "Where would you most like to go on your next vacation?",
-    "imposter": "What would be the worst place to go on vacation?"
+    "imposter": "Where's the best vacation spot for someone who doesn't care about their own safety?"
   },
   "4": {
     "group": "What wouldn't you miss even if it meant skipping your child's birth?",
-    "imposter": "Why did you last skip work?"
+    "imposter": "What excuse did you last use to skip work?"
   },
   "5": {
     "group": "Who is the best person to clone an army of?",
@@ -32,8 +32,8 @@
     "imposter": "What is your biggest red flag?"
   },
   "9": {
-    "group": "Who in this game has the worse haircut?",
-    "imposter": "Who in this game is going bald first?"
+    "group": "Who in this game is going bald first?",
+    "imposter": "Who in this game has the best haircut?"
   },
   "10": {
     "group": "What's the longest number of days you've gone without washing?",
@@ -42,5 +42,21 @@
   "11": {
     "group": "What's one word to describe {random_player}?",
     "imposter": "What's one word to describe {random_player}?"
+  },
+  "12": {
+    "group": "What is the youngest age you would date?",
+    "imposter": "At what age did you start puberty?"
+  },
+  "13": {
+    "group": "What's the coolest thing you could file as a tax deduction?",
+    "imposter": "What was the last thing you bought on amazon?"
+  },
+  "14": {
+    "group": "What song would you play as the bride walks down the aisle at your wedding?",
+    "imposter": "What song really gets you moving in a club?"
+  },
+  "15": {
+    "group": "What's your favourite animal to keep as a pet?",
+    "imposter": "What's your favourite animal that's bigger than you?"
   }
 }

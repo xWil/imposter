@@ -27,9 +27,21 @@ public class ImposterGameMode extends GameMode {
     private final Map<UUID, Integer> scores = new HashMap<>();
 
     public ImposterGameMode(Lobby lobby, Game game, int maxRounds) {
-        super(lobby, game, maxRounds);
+        super(Mode.IMPOSTER, lobby, game, maxRounds);
         this.logger = LoggerFactory.getLogger("ImposterGameMode - " + lobby.getLobbyCode());
         this.maxRounds = maxRounds;
+    }
+
+    public int getRoundNumber() {
+        return roundNumber;
+    }
+
+    public ImposterRound getCurrentRound() {
+        return currentRound;
+    }
+
+    public Map<UUID, Integer> getScores() {
+        return scores;
     }
 
     @Override

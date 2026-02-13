@@ -5,6 +5,8 @@ import gg.wil.imposter.services.LobbyService;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/lobby")
 @CrossOrigin(origins = "http://localhost:3000")
@@ -24,5 +26,10 @@ public class LobbyController {
     @GetMapping("/join")
     public Mono<LobbyResponse> joinLobby(@RequestParam("lobby") String lobbyCode, @RequestParam("username") String username) {
         return this.lobbyService.joinLobby(lobbyCode, username);
+    }
+
+    @GetMapping("/rejoin")
+    public Mono<LobbyResponse> rejoinLobby(@RequestParam("lobby") String lobbyCode, @RequestParam("playerID") String playerID) {
+        return this.lobbyService.rejoinLobby(lobbyCode, UUID.fromString(playerID));
     }
 }

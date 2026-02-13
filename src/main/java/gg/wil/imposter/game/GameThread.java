@@ -1,11 +1,10 @@
 package gg.wil.imposter.game;
 
 import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
-import gg.wil.imposter.api.messages.websocket.receive.ReceiveGameStartMessage;
-import gg.wil.imposter.api.messages.websocket.receive.ReceiveIconChangeMessage;
-import gg.wil.imposter.api.messages.websocket.receive.ReceivePlayerJoinMessage;
-import gg.wil.imposter.api.messages.websocket.receive.ReceivePlayerLeaveMessage;
+import gg.wil.imposter.api.messages.websocket.receive.*;
 import gg.wil.imposter.api.messages.websocket.send.*;
+import gg.wil.imposter.api.messages.websocket.send.state.SendImposterStateMessage;
+import gg.wil.imposter.api.messages.websocket.send.state.SendLobbyStateMessage;
 import gg.wil.imposter.game.gamemode.GameMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +73,7 @@ public class GameThread extends Thread {
                 case ReceiveIconChangeMessage receiveIconChangeMessage -> handleIconChangeMessage(receiveIconChangeMessage);
                 case ReceivePlayerJoinMessage receivePlayerJoinMessage -> handlePlayerJoinMessage(receivePlayerJoinMessage);
                 case ReceivePlayerLeaveMessage receivePlayerLeaveMessage -> handlePlayerLeaveMessage(receivePlayerLeaveMessage);
+                case ReceivePlayerRejoinMessage receivePlayerRejoinMessage -> handlePlayerRejoinMessage(receivePlayerRejoinMessage);
                 default -> {
                     if(gameMode != null) {
                         gameMode.handleMessage(message);
@@ -101,6 +101,7 @@ public class GameThread extends Thread {
             return;
         }
         // start game
+        this.lobby.setState(Lobby.LobbyState.PLAYING);
         this.gameMode = message.getMode().create(lobby, game, 3);
         this.game.setGameMode(gameMode);
         gameMode.startGame();
@@ -127,6 +128,19 @@ public class GameThread extends Thread {
             return;
         }
         lobby.broadcastExcludePlayer(new SendPlayerLeaveMessage(from.getUUID()), from.getUUID());
+    }
+
+    private void handlePlayerRejoinMessage(ReceivePlayerRejoinMessage message) {
+        Player from = message.getFrom();
+        from.sendMessage(new SendPlayerListMessage(this.lobby.getPlayers()));
+
+        if(this.lobby.getState() == Lobby.LobbyState.WAITING) {
+            from.sendMessage(new SendLobbyStateMessage(from, this.lobby, this.game));
+        } else if(this.lobby.getState() == Lobby.LobbyState.PLAYING) {
+            switch(this.gameMode.getMode()) {
+                case IMPOSTER -> from.sendMessage(new SendImposterStateMessage(from, this.lobby, this.game));
+            }
+        }
     }
 
     public void stopGame() {

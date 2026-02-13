@@ -13,6 +13,7 @@ public enum WebSocketReceiveMessageType {
     PHASE_END(ReceivePhaseEndMessage::new),
     PLAYER_JOIN(ReceivePlayerJoinMessage::new),
     PLAYER_LEAVE(ReceivePlayerLeaveMessage::new),
+    PLAYER_REJOIN(ReceivePlayerRejoinMessage::new),
     ROUND_END(ReceiveRoundEndMessage::new),
     SCORES_GET(ReceiveScoresGetMessage::new),
     TIMES_UP(ReceiveTimesUpMessage::new),

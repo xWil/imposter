@@ -22,8 +22,8 @@ public class ImposterRound {
     private Player imposter;
     private String currentQuestion;
     private String imposterQuestion;
-    private Map<UUID, String> answers = new HashMap<>();
-    private Map<UUID, UUID> votes = new HashMap<>();
+    private final Map<UUID, String> answers = new HashMap<>();
+    private final Map<UUID, UUID> votes = new HashMap<>();
 
     public ImposterRound(Lobby lobby, Game game, ImposterGameMode gameMode, int roundNumber, int maxRounds, int time) {
         this.lobby = lobby;
@@ -39,7 +39,7 @@ public class ImposterRound {
     }
 
     private void getImposter() {
-        Collection<Player> players = lobby.getPlayers();
+        Collection<Player> players = this.lobby.getConnectedPlayers();
         Random random = new Random();
         ArrayList<Player> playerList = new ArrayList<>(players);
         this.imposter = playerList.get(random.nextInt(playerList.size()));
@@ -80,19 +80,43 @@ public class ImposterRound {
         this.imposter.sendMessage(imposterQuestionMessage);
     }
 
+    public Map<UUID, String> getAnswers() {
+        return answers;
+    }
+
+    public String getQuestionForPlayer(Player player) {
+        return player.equals(imposter) ? imposterQuestion : currentQuestion;
+    }
+
+    public Phase getPhase() {
+        return phase;
+    }
+
     public void receiveAnswer(UUID playerUUID, String answer) {
         answers.put(playerUUID, answer);
-        if(this.phase == Phase.DISCUSSING && answers.size() >= lobby.getPlayers().size()) {
-            changeToDiscussingPhase();
+
+        boolean moveOn = true;
+        for(Player player : this.lobby.getConnectedPlayers()) {
+            if(answers.containsKey(player.getUUID())) continue;
+            moveOn = false;
+            break;
         }
+
+        if(moveOn) endAnsweringPhase(false);
     }
 
     public void receiveVote(UUID playerUUID, UUID votedFor) {
         if(this.phase != Phase.VOTING) return;
         votes.put(playerUUID, votedFor);
-        if(votes.size() >= lobby.getPlayers().size()) {
-            endPhase(false);
+
+        boolean moveOn = true;
+        for(Player player : this.lobby.getConnectedPlayers()) {
+            if(votes.containsKey(player.getUUID())) continue;
+            moveOn = false;
+            break;
         }
+
+        if(moveOn) endVotingPhase(false);
     }
 
     public void endPhase(boolean outOfTime) {
@@ -106,12 +130,13 @@ public class ImposterRound {
     private void endAnsweringPhase(boolean outOfTime) {
         this.phase = Phase.DISCUSSING;
         if(outOfTime) {
-            Set<Player> unansweredPlayers = new HashSet<>(lobby.getPlayers());
+            Set<Player> unansweredPlayers = new HashSet<>(this.lobby.getConnectedPlayers());
             for(UUID playerUUID : answers.keySet()) {
                 unansweredPlayers.remove(lobby.getPlayer(playerUUID));
             }
             if(!unansweredPlayers.isEmpty()) {
                 for(Player player : unansweredPlayers) {
+                    if(!player.isConnected()) continue;
                     player.sendMessage(new SendTimesUpMessage());
                 }
                 return;
@@ -134,12 +159,13 @@ public class ImposterRound {
     private void endVotingPhase(boolean outOfTime) {
         this.phase = Phase.FINISHED;
         if(outOfTime) {
-            Set<Player> unansweredPlayers = new HashSet<>(lobby.getPlayers());
+            Set<Player> unansweredPlayers = new HashSet<>(lobby.getConnectedPlayers());
             for(UUID playerUUID : votes.keySet()) {
                 unansweredPlayers.remove(lobby.getPlayer(playerUUID));
             }
             if(!unansweredPlayers.isEmpty()) {
                 for(Player player : unansweredPlayers) {
+                    if(!player.isConnected()) continue;
                     player.sendMessage(new SendTimesUpMessage());
                 }
             }

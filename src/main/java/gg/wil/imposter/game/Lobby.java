@@ -55,12 +55,20 @@ public class Lobby {
         return this.state;
     }
 
+    public final void setState(LobbyState state) {
+        this.state = state;
+    }
+
     public final Player getHost() {
         return this.host;
     }
 
     public Collection<Player> getPlayers() {
         return this.players.values();
+    }
+
+    public Collection<Player> getConnectedPlayers() {
+        return this.players.values().stream().filter(Player::isConnected).toList();
     }
 
     public Player getPlayer(UUID uuid) {

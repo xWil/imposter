@@ -57,6 +57,26 @@
   },
   "15": {
     "group": "What's your favourite animal to keep as a pet?",
-    "imposter": "What's your favourite animal that's bigger than you?"
+    "imposter": "Name an animal that's bigger than you"
+  },
+  "16": {
+    "group": "If you were {random_player}, what's the first thing you would do?",
+    "imposter": "If you were {random_player}, what's the first thing you would do?"
+  },
+  "17": {
+    "group": "Which historical figure would you bring back to life?",
+    "imposter": "Who's the most infamous person in history?"
+  },
+  "18": {
+    "group": "How many kids do you want to have?",
+    "imposter": "How many people do you have blocked on instagram?"
+  },
+  "19": {
+    "group": "What the best way to die?",
+    "imposter": "What's your most shameful habit?"
+  },
+  "20": {
+    "group": "Name a country",
+    "imposter": "Name a US state"
   }
 }

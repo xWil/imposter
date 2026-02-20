@@ -43,7 +43,7 @@ public class Lobby {
         Scheduler.INSTANCE.runTaskLater(() -> {
             if(host.isConnected()) return;
             logger.info("Lobby {} timed out due to the host not connecting", lobbyCode);
-            closeLobby();
+            this.game.stopGame();
         }, 5000);
     }
 

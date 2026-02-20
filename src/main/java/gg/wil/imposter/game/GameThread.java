@@ -62,7 +62,8 @@ public class GameThread extends Thread {
     }
 
     private void tick() {
-        processMessages();
+        this.processMessages();
+        this.game.getScheduler().gameThreadTick();
     }
 
     private void processMessages() {

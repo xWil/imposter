@@ -8,7 +8,8 @@ public class GameTask implements Runnable {
     private final long creationTime = System.nanoTime();
     private final Runnable task;
     private volatile long period;
-    private long nextRun;
+    private long nextRun = -1;
+    private long nextRunNano = -1;
     private volatile GameTask next = null;
     private volatile boolean cancelled = false;
 
@@ -44,6 +45,14 @@ public class GameTask implements Runnable {
 
     public void setNextRun(final long nextRun) {
         this.nextRun = nextRun;
+    }
+
+    public final long getNextRunNano() {
+        return nextRunNano;
+    }
+
+    public final void setNextRunNano(final long nextRunNano) {
+        this.nextRunNano = nextRunNano;
     }
 
     public final GameTask getNext() {

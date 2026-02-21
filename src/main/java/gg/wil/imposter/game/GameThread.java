@@ -24,7 +24,7 @@ public class GameThread extends Thread {
     public GameThread(Game game, Lobby lobby) {
         this.game = game;
         this.lobby = lobby;
-        logger = LoggerFactory.getLogger("GameThread-" + lobby.getLobbyCode());
+        logger = LoggerFactory.getLogger("GameThread - " + lobby.getLobbyCode());
     }
 
     @Override
@@ -32,7 +32,7 @@ public class GameThread extends Thread {
         logger.info("Game thread started");
         long tickCount = 0;
 
-        final long TARGET_TPS = 5;
+        final long TARGET_TPS = 10;
         final long TARGET_TICK_TIME = 1000000000/TARGET_TPS;
         final long START_TIME = System.nanoTime();
 

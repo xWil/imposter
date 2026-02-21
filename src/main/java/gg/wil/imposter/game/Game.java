@@ -1,6 +1,7 @@
 package gg.wil.imposter.game;
 
 import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
+import gg.wil.imposter.game.component.ComponentManager;
 import gg.wil.imposter.game.gamemode.GameMode;
 import gg.wil.imposter.game.scheduler.GameScheduler;
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ public class Game {
     private final Lobby lobby;
     private final GameThread gameThread;
     private final GameScheduler scheduler;
+    private final ComponentManager componentManager;
     private GameMode gameMode;
 
     private final CopyOnWriteArraySet<WebSocketReceiveMessage> unprocessedMessages = new CopyOnWriteArraySet<>();
@@ -25,11 +27,16 @@ public class Game {
         this.lobby = lobby;
         this.gameThread = new GameThread(this, lobby);
         this.scheduler = new GameScheduler(lobby.getLobbyCode());
+        this.componentManager = new ComponentManager(this, lobby.getLobbyCode());
         this.gameThread.start();
     }
 
     public GameScheduler getScheduler() {
         return scheduler;
+    }
+
+    public ComponentManager getComponentManager() {
+        return componentManager;
     }
 
     public void setGameMode(GameMode gameMode) {

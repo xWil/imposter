@@ -10,6 +10,7 @@ public enum WebSocketReceiveMessageType {
     GAME_START(ReceiveGameStartMessage::new),
     ICON_CHANGE(ReceiveIconChangeMessage::new),
     INTRO_FINISHED(ReceiveIntroFinishedMessage::new),
+    PING(ReceivePingMessage::new),
     PHASE_END(ReceivePhaseEndMessage::new),
     PLAYER_JOIN(ReceivePlayerJoinMessage::new),
     PLAYER_LEAVE(ReceivePlayerLeaveMessage::new),

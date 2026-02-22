@@ -73,6 +73,7 @@ public class GameThread extends Thread {
             switch (message) {
                 case ReceiveGameStartMessage receiveGameStartMessage -> handleGameStartMessage(receiveGameStartMessage);
                 case ReceiveIconChangeMessage receiveIconChangeMessage -> handleIconChangeMessage(receiveIconChangeMessage);
+                case ReceivePingMessage receivePingMessage -> handlePingMessage(receivePingMessage);
                 case ReceivePlayerJoinMessage receivePlayerJoinMessage -> handlePlayerJoinMessage(receivePlayerJoinMessage);
                 case ReceivePlayerLeaveMessage receivePlayerLeaveMessage -> handlePlayerLeaveMessage(receivePlayerLeaveMessage);
                 case ReceivePlayerRejoinMessage receivePlayerRejoinMessage -> handlePlayerRejoinMessage(receivePlayerRejoinMessage);
@@ -113,6 +114,10 @@ public class GameThread extends Thread {
         Player from = message.getFrom();
         from.setIconData(message.getIconData());
         lobby.broadcastExcludePlayer(new SendIconChangeMessage(from), from.getUUID());
+    }
+
+    private void handlePingMessage(ReceivePingMessage message) {
+        message.getFrom().sendMessage(new SendPongMessage());
     }
 
     private void handlePlayerJoinMessage(ReceivePlayerJoinMessage message) {

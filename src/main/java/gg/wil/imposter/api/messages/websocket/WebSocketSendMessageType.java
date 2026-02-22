@@ -16,6 +16,7 @@ public enum WebSocketSendMessageType {
     PLAYER_JOIN(SendPlayerJoinMessage.class),
     PLAYER_LEAVE(SendPlayerLeaveMessage.class),
     PLAYER_LIST(SendPlayerListMessage.class),
+    PONG(SendPongMessage.class),
     QUESTION(SendQuestionMessage.class),
     TIMES_UP(SendTimesUpMessage.class),
     SCORES(SendScoresMessage.class),

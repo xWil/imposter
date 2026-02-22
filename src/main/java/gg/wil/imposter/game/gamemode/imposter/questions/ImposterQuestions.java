@@ -27,7 +27,8 @@ public class ImposterQuestions {
             for (Map.Entry<String, Map<String, String>> entry : data.entrySet()) {
                 int id = Integer.parseInt(entry.getKey());
                 Map<String, String> values = entry.getValue();
-                QUESTIONS.add(new QuestionPair(id, values.get("group"), values.get("imposter")));
+                FilterType filterType = FilterType.valueOf(values.get("filter"));
+                QUESTIONS.add(new QuestionPair(id, values.get("group"), values.get("imposter"), filterType));
             }
 
             logger.info("Loaded {} questions", QUESTIONS.size());

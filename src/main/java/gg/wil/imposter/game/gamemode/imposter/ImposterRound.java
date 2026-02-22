@@ -4,13 +4,17 @@ import gg.wil.imposter.api.messages.websocket.send.*;
 import gg.wil.imposter.game.Game;
 import gg.wil.imposter.game.Lobby;
 import gg.wil.imposter.game.Player;
+import gg.wil.imposter.game.component.components.Timer;
 import gg.wil.imposter.game.gamemode.imposter.questions.ImposterQuestions;
 import gg.wil.imposter.game.gamemode.imposter.questions.QuestionPair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public class ImposterRound {
 
+    private final Logger logger;
     private final Lobby lobby;
     private final Game game;
     private final ImposterGameMode gameMode;
@@ -19,6 +23,7 @@ public class ImposterRound {
     private final int time;
 
     private Phase phase = Phase.ANSWERING;
+    private Timer phaseTimer;
     private Player imposter;
     private String currentQuestion;
     private String imposterQuestion;
@@ -26,6 +31,7 @@ public class ImposterRound {
     private final Map<UUID, UUID> votes = new HashMap<>();
 
     public ImposterRound(Lobby lobby, Game game, ImposterGameMode gameMode, int roundNumber, int maxRounds, int time) {
+        this.logger = LoggerFactory.getLogger("ImposterRound - " + lobby.getLobbyCode());
         this.lobby = lobby;
         this.game = game;
         this.gameMode = gameMode;
@@ -78,6 +84,9 @@ public class ImposterRound {
         this.lobby.getHost().sendMessage(new SendAnsweringStartMessage(this.roundNumber, this.maxRounds, this.time));
         this.lobby.broadcastExcludePlayer(questionMessage, imposter.getUUID());
         this.imposter.sendMessage(imposterQuestionMessage);
+
+        this.phaseTimer = new Timer((this.time * 1000L), () -> logger.info("Answering phase timed out!"));
+        this.game.getComponentManager().registerComponent(this.phaseTimer);
     }
 
     public Map<UUID, String> getAnswers() {
@@ -120,6 +129,7 @@ public class ImposterRound {
     }
 
     public void endPhase(boolean outOfTime) {
+        logger.info("Ending phase: {}", phase);
         switch(this.phase) {
             case ANSWERING -> endAnsweringPhase(outOfTime);
             case DISCUSSING -> endDiscussingPhase(outOfTime);
@@ -147,13 +157,21 @@ public class ImposterRound {
 
     private void changeToDiscussingPhase() {
         if(this.phase != Phase.DISCUSSING) return;
-        this.lobby.getHost().sendMessage(new SendAnswersMessage(currentQuestion, 30, answers));
+        this.lobby.getHost().sendMessage(new SendAnswersMessage(currentQuestion, 15, answers));
+
+        this.game.getComponentManager().deregisterComponent(this.phaseTimer);
+        this.phaseTimer = new Timer((15000L), () -> logger.info("Discussion phase timed out!"));
+        this.game.getComponentManager().registerComponent(this.phaseTimer);
     }
 
     private void endDiscussingPhase(boolean outOfTime) {
         this.phase = Phase.VOTING;
         SendVotingStartMessage message = new SendVotingStartMessage(currentQuestion, 60, answers);
         this.lobby.broadcast(message);
+
+        this.game.getComponentManager().deregisterComponent(this.phaseTimer);
+        this.phaseTimer = new Timer((60000L), () -> logger.info("Voting phase timed out!"));
+        this.game.getComponentManager().registerComponent(this.phaseTimer);
     }
 
     private void endVotingPhase(boolean outOfTime) {

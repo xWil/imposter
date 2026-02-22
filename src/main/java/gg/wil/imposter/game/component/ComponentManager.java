@@ -49,6 +49,10 @@ public class ComponentManager {
         }
     }
 
+    public void deregisterComponent(final Component component) {
+        tickMethods.values().forEach(executors -> executors.removeIf(executor -> executor.getComponent() == component));
+    }
+
     public void tickComponents() {
         tickMethods.forEach((priority, executors) -> executors.forEach(executor -> {
             try { executor.execute();

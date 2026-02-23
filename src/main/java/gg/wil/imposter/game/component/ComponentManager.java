@@ -96,19 +96,25 @@ public class ComponentManager {
 
     public void tickComponents() {
         Map<TickPriority, Set<TickExecutor>> tickMethodsSnapshot = Map.copyOf(this.tickMethods); // snapshot before iteration to prevent concurrent modification
-        tickMethodsSnapshot.forEach((priority, executors) -> executors.forEach(executor -> {
-            try { executor.execute();
-            } catch(Throwable t) { logger.error("Failed to invoke tick method: {} on component {}", executor.getMethod().getName(), executor.getComponent() , t); }
-        }));
+        tickMethodsSnapshot.forEach((priority, executors) -> {
+            Set<TickExecutor> executorsSnapshot = new HashSet<>(executors);
+            executorsSnapshot.forEach(executor -> {
+                try { executor.execute();
+                } catch(Throwable t) { logger.error("Failed to invoke tick method: {} on component {}", executor.getMethod().getName(), executor.getComponent() , t); }
+            });
+        });
     }
 
     public void broadcastMessage(WebSocketReceiveMessage message) {
         Map<ListenerPriority, Set<ListenerExecutor>> listeners = this.messageListeners.get(message.getClass());
         if(listeners == null) return;
         listeners = Map.copyOf(listeners); // snapshot before iteration to prevent concurrent modification
-        listeners.forEach((priority, executors) -> executors.forEach(executor -> {
-            try { executor.execute(message);
-            } catch(Throwable t) { logger.error("Failed to invoke message listener method: {} on component {}", executor.getMethod().getName(), executor.getComponent() , t); }
-        }));
+        listeners.forEach((priority, executors) -> {
+            Set<ListenerExecutor> executorsSnapshot = new HashSet<>(executors);
+            executorsSnapshot.forEach(executor -> {
+                try { executor.execute(message);
+                } catch (Throwable t) { logger.error("Failed to invoke message listener method: {} on component {}", executor.getMethod().getName(), executor.getComponent(), t); }
+            });
+        });
     }
 }

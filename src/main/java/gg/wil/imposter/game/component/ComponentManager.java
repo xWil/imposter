@@ -1,6 +1,10 @@
 package gg.wil.imposter.game.component;
 
+import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
 import gg.wil.imposter.game.Game;
+import gg.wil.imposter.game.component.listener.ListenerExecutor;
+import gg.wil.imposter.game.component.listener.ListenerPriority;
+import gg.wil.imposter.game.component.listener.MessageListener;
 import gg.wil.imposter.game.component.tick.Tick;
 import gg.wil.imposter.game.component.tick.TickExecutor;
 import gg.wil.imposter.game.component.tick.TickPriority;
@@ -16,6 +20,7 @@ public class ComponentManager {
     private final Game game;
 
     private final Map<TickPriority, Set<TickExecutor>> tickMethods = new EnumMap<>(TickPriority.class);
+    private final Map<Class<? extends WebSocketReceiveMessage>, EnumMap<ListenerPriority, Set<ListenerExecutor>>> messageListeners = new HashMap<>();
 
     public ComponentManager(Game game, String identifier) {
         this.game = game;
@@ -38,25 +43,70 @@ public class ComponentManager {
         }
 
         for(Method method : methods) {
+            if(method.isBridge() || method.isSynthetic()) continue;
+            // @Tick annotation
             final Tick tick = method.getAnnotation(Tick.class);
-            if(tick == null || method.isBridge() || method.isSynthetic()) continue;
-            if(method.getParameterCount() != 0) {
-                throw new IllegalStateException("Method annotated with @Tick must not have parameters: " + method.getName() + " in class " + component.getClass().getName());
+            if(tick != null) {
+                this.processTickMethod(method, tick, component);
+                continue;
             }
-            method.setAccessible(true);
 
-            tickMethods.computeIfAbsent(tick.priority(), priority -> new HashSet<>()).add(new TickExecutor(component, method));
+            // @MessageListener annotation
+            final MessageListener messageListener = method.getAnnotation(MessageListener.class);
+            if(messageListener != null) {
+                this.processMessageListenerMethod(method, messageListener, component);
+                continue;
+            }
         }
     }
 
+    private void processTickMethod(Method method, Tick tick, Component component) {
+        if(method.getParameterCount() != 0) {
+            throw new IllegalStateException("Method annotated with @Tick must not have parameters: " + method.getName() + " in class " + component.getClass().getName());
+        }
+
+        method.setAccessible(true);
+        tickMethods.computeIfAbsent(tick.priority(), priority -> new HashSet<>()).add(new TickExecutor(component, method));
+    }
+
+    private void processMessageListenerMethod(Method method, MessageListener messageListener, Component component) {
+        if(method.getParameterCount() != 1) {
+            throw new IllegalStateException("Method annotated with @MessageListener must have exactly one parameter: " + method.getName() + " in class " + component.getClass().getName());
+        }
+
+        final Class<?> parameterType = method.getParameterTypes()[0];
+        if(!WebSocketReceiveMessage.class.isAssignableFrom(parameterType)) {
+            throw new IllegalStateException("Method annotated with @MessageListener must have parameter of type WebSocketReceiveMessage: " + method.getName() + " in class " + component.getClass().getName());
+        }
+        final Class<? extends WebSocketReceiveMessage> messageType = parameterType.asSubclass(WebSocketReceiveMessage.class);
+
+        method.setAccessible(true);
+        ListenerPriority priority = messageListener.priority();
+        ListenerExecutor listenerExecutor = new ListenerExecutor(component, method, parameterType);
+
+        this.messageListeners.computeIfAbsent(messageType, type -> new EnumMap<>(ListenerPriority.class))
+                .computeIfAbsent(priority, p -> new HashSet<>()).add(listenerExecutor);
+    }
+
     public void deregisterComponent(final Component component) {
-        tickMethods.values().forEach(executors -> executors.removeIf(executor -> executor.getComponent() == component));
+        this.tickMethods.values().forEach(executors -> executors.removeIf(executor -> executor.getComponent() == component));
+        this.messageListeners.values().forEach(listeners -> listeners.values()
+                .forEach(executors -> executors.removeIf(executor -> executor.getComponent() == component)));
     }
 
     public void tickComponents() {
-        tickMethods.forEach((priority, executors) -> executors.forEach(executor -> {
+        this.tickMethods.forEach((priority, executors) -> executors.forEach(executor -> {
             try { executor.execute();
             } catch(Throwable t) { logger.error("Failed to invoke tick method: {} on component {}", executor.getMethod().getName(), executor.getComponent() , t); }
+        }));
+    }
+
+    public void broadcastMessage(WebSocketReceiveMessage message) {
+        Map<ListenerPriority, Set<ListenerExecutor>> listeners = this.messageListeners.get(message.getClass());
+        if(listeners == null) return;
+        listeners.forEach((priority, executors) -> executors.forEach(executor -> {
+            try { executor.execute(message);
+            } catch(Throwable t) { logger.error("Failed to invoke message listener method: {} on component {}", executor.getMethod().getName(), executor.getComponent() , t); }
         }));
     }
 }

@@ -1,25 +1,14 @@
 package gg.wil.imposter.game.component.tick;
 
 import gg.wil.imposter.game.component.Component;
+import gg.wil.imposter.game.component.Executor;
 
 import java.lang.reflect.Method;
 
-public class TickExecutor {
-
-    private final Component component;
-    private final Method method;
+public class TickExecutor extends Executor {
 
     public TickExecutor(final Component component, final Method method) {
-        this.component = component;
-        this.method = method;
-    }
-
-    public Component getComponent() {
-        return this.component;
-    }
-
-    public Method getMethod() {
-        return this.method;
+        super(component, method);
     }
 
     public void execute() throws ReflectiveOperationException {

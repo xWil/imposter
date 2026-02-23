@@ -83,6 +83,7 @@ public class GameThread extends Thread {
                     }
                 }
             }
+            this.game.getComponentManager().broadcastMessage(message);
         }
     }
 

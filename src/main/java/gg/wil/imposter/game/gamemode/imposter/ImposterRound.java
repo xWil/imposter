@@ -71,7 +71,7 @@ public class ImposterRound {
         this.lobby.broadcastExcludePlayer(questionMessage, imposter.getUUID());
         this.imposter.sendMessage(imposterQuestionMessage);
 
-        this.phaseTimer = new Timer((this.time * 1000L), () -> logger.info("Answering phase timed out!"));
+        this.phaseTimer = new Timer((this.time * 1000L), () -> endPhase(true));
         this.game.getComponentManager().registerComponent(this.phaseTimer);
     }
 
@@ -126,6 +126,9 @@ public class ImposterRound {
     private void endAnsweringPhase(boolean outOfTime) {
         this.phase = Phase.DISCUSSING;
         if(outOfTime) {
+            SendTimesUpMessage message = new SendTimesUpMessage();
+            this.lobby.getHost().sendMessage(message);
+
             Set<Player> unansweredPlayers = new HashSet<>(this.lobby.getConnectedPlayers());
             for(UUID playerUUID : answers.keySet()) {
                 unansweredPlayers.remove(lobby.getPlayer(playerUUID));
@@ -133,7 +136,7 @@ public class ImposterRound {
             if(!unansweredPlayers.isEmpty()) {
                 for(Player player : unansweredPlayers) {
                     if(!player.isConnected()) continue;
-                    player.sendMessage(new SendTimesUpMessage());
+                    player.sendMessage(message);
                 }
                 return;
             }
@@ -146,7 +149,7 @@ public class ImposterRound {
         this.lobby.getHost().sendMessage(new SendAnswersMessage(currentQuestion, 15, answers));
 
         this.game.getComponentManager().deregisterComponent(this.phaseTimer);
-        this.phaseTimer = new Timer((15000L), () -> logger.info("Discussion phase timed out!"));
+        this.phaseTimer = new Timer((15000L), () -> endPhase(true));
         this.game.getComponentManager().registerComponent(this.phaseTimer);
     }
 
@@ -156,13 +159,16 @@ public class ImposterRound {
         this.lobby.broadcast(message);
 
         this.game.getComponentManager().deregisterComponent(this.phaseTimer);
-        this.phaseTimer = new Timer((60000L), () -> logger.info("Voting phase timed out!"));
+        this.phaseTimer = new Timer((60000L), () -> endPhase(true));
         this.game.getComponentManager().registerComponent(this.phaseTimer);
     }
 
     private void endVotingPhase(boolean outOfTime) {
         this.phase = Phase.FINISHED;
         if(outOfTime) {
+            SendTimesUpMessage message = new SendTimesUpMessage();
+            this.lobby.getHost().sendMessage(message);
+
             Set<Player> unansweredPlayers = new HashSet<>(lobby.getConnectedPlayers());
             for(UUID playerUUID : votes.keySet()) {
                 unansweredPlayers.remove(lobby.getPlayer(playerUUID));
@@ -170,7 +176,7 @@ public class ImposterRound {
             if(!unansweredPlayers.isEmpty()) {
                 for(Player player : unansweredPlayers) {
                     if(!player.isConnected()) continue;
-                    player.sendMessage(new SendTimesUpMessage());
+                    player.sendMessage(message);
                 }
             }
         }

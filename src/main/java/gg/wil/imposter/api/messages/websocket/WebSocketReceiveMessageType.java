@@ -17,7 +17,6 @@ public enum WebSocketReceiveMessageType {
     PLAYER_REJOIN(ReceivePlayerRejoinMessage::new),
     ROUND_END(ReceiveRoundEndMessage::new),
     SCORES_GET(ReceiveScoresGetMessage::new),
-    TIMES_UP(ReceiveTimesUpMessage::new),
     VOTE_SUBMIT(ReceiveVoteSubmitMessage::new);
 
     private final ReceiveMessageFactory factory;

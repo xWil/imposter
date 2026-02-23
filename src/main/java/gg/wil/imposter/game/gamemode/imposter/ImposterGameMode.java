@@ -74,6 +74,11 @@ public class ImposterGameMode extends GameMode {
         scores.put(playerUUID, scores.getOrDefault(playerUUID, 0) - amount);
     }
 
+    private void sendTimesUp() {
+        if(this.currentRound == null) return;
+        this.currentRound.endPhase(true);
+    }
+
     @Override
     public void handleMessage(WebSocketReceiveMessage message) {
         switch (message) {
@@ -83,7 +88,6 @@ public class ImposterGameMode extends GameMode {
             case ReceivePhaseEndMessage receivePhaseEndMessage -> handlePhaseEndMessage(receivePhaseEndMessage);
             case ReceiveRoundEndMessage receiveRoundEndMessage -> handleRoundEndMessage (receiveRoundEndMessage);
             case ReceiveScoresGetMessage receiveScoresGetMessage -> handleScoresGetMessage(receiveScoresGetMessage);
-            case ReceiveTimesUpMessage receiveTimesUpMessage -> handleTimesUpMessage(receiveTimesUpMessage);
             case ReceiveVoteSubmitMessage receiveVoteSubmitMessage -> handleVoteSubmit(receiveVoteSubmitMessage);
             default -> {
                 this.logger.warn("Unhandled message type: {}", message.getType());
@@ -124,13 +128,6 @@ public class ImposterGameMode extends GameMode {
     private void handleScoresGetMessage(ReceiveScoresGetMessage message) {
         Player from = message.getFrom();
         from.sendMessage(new SendScoresMessage(scores, !(this.roundNumber==this.maxRounds)));
-    }
-
-    private void handleTimesUpMessage(ReceiveTimesUpMessage message) {
-        if(this.currentRound == null) return;
-        Player from = message.getFrom();
-        if(!from.getUUID().equals(lobby.getHost().getUUID())) return;
-        this.currentRound.endPhase(true);
     }
 
     private void handleVoteSubmit(ReceiveVoteSubmitMessage message) {

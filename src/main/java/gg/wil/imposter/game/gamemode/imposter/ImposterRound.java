@@ -21,7 +21,6 @@ public class ImposterRound {
     private final ImposterGameMode gameMode;
     private final int roundNumber;
     private final int maxRounds;
-    private final int time;
 
     private Phase phase = Phase.ANSWERING;
     private Timer phaseTimer;
@@ -31,14 +30,13 @@ public class ImposterRound {
     private final Map<UUID, String> answers = new HashMap<>();
     private final Map<UUID, UUID> votes = new HashMap<>();
 
-    public ImposterRound(Lobby lobby, Game game, ImposterGameMode gameMode, int roundNumber, int maxRounds, int time) {
+    public ImposterRound(Lobby lobby, Game game, ImposterGameMode gameMode, int roundNumber, int maxRounds) {
         this.logger = LoggerFactory.getLogger("ImposterRound - " + lobby.getLobbyCode());
         this.lobby = lobby;
         this.game = game;
         this.gameMode = gameMode;
         this.roundNumber = roundNumber;
         this.maxRounds = maxRounds;
-        this.time = time;
 
         this.getImposter();
         this.getQuestions();
@@ -65,13 +63,14 @@ public class ImposterRound {
     }
 
     private void sendInitialMessages() {
-        SendQuestionMessage questionMessage = new SendQuestionMessage(this.currentQuestion, this.roundNumber, this.maxRounds, this.time);
-        SendQuestionMessage imposterQuestionMessage = new SendQuestionMessage(this.imposterQuestion, this.roundNumber, this.maxRounds, this.time);
-        this.lobby.getHost().sendMessage(new SendAnsweringStartMessage(this.roundNumber, this.maxRounds, this.time));
+        final int answeringPhaseDuration = this.gameMode.getAnsweringPhaseDuration();
+        SendQuestionMessage questionMessage = new SendQuestionMessage(this.currentQuestion, this.roundNumber, this.maxRounds, answeringPhaseDuration);
+        SendQuestionMessage imposterQuestionMessage = new SendQuestionMessage(this.imposterQuestion, this.roundNumber, this.maxRounds, answeringPhaseDuration);
+        this.lobby.getHost().sendMessage(new SendAnsweringStartMessage(this.roundNumber, this.maxRounds, answeringPhaseDuration));
         this.lobby.broadcastExcludePlayer(questionMessage, imposter.getUUID());
         this.imposter.sendMessage(imposterQuestionMessage);
 
-        this.phaseTimer = new Timer((this.time * 1000L), () -> endPhase(true));
+        this.phaseTimer = new Timer((answeringPhaseDuration * 1000L), () -> endPhase(true));
         this.game.getComponentManager().registerComponent(this.phaseTimer);
     }
 
@@ -146,20 +145,23 @@ public class ImposterRound {
 
     private void changeToDiscussingPhase() {
         if(this.phase != Phase.DISCUSSING) return;
-        this.lobby.getHost().sendMessage(new SendAnswersMessage(currentQuestion, 15, answers));
+
+        final int discussionPhaseDuration = this.gameMode.getDiscussionPhaseDuration();
+        this.lobby.getHost().sendMessage(new SendAnswersMessage(currentQuestion, discussionPhaseDuration, answers));
 
         this.game.getComponentManager().deregisterComponent(this.phaseTimer);
-        this.phaseTimer = new Timer((15000L), () -> endPhase(true));
+        this.phaseTimer = new Timer((discussionPhaseDuration * 1000L), () -> endPhase(true));
         this.game.getComponentManager().registerComponent(this.phaseTimer);
     }
 
     private void endDiscussingPhase(boolean outOfTime) {
         this.phase = Phase.VOTING;
-        SendVotingStartMessage message = new SendVotingStartMessage(currentQuestion, 60, answers);
+        final int votingPhaseDuration = this.gameMode.getVotingPhaseDuration();
+        SendVotingStartMessage message = new SendVotingStartMessage(currentQuestion, votingPhaseDuration, answers);
         this.lobby.broadcast(message);
 
         this.game.getComponentManager().deregisterComponent(this.phaseTimer);
-        this.phaseTimer = new Timer((60000L), () -> endPhase(true));
+        this.phaseTimer = new Timer((votingPhaseDuration * 1000L), () -> endPhase(true));
         this.game.getComponentManager().registerComponent(this.phaseTimer);
     }
 

@@ -10,6 +10,7 @@ import gg.wil.imposter.game.Game;
 import gg.wil.imposter.game.Lobby;
 import gg.wil.imposter.game.Player;
 import gg.wil.imposter.game.gamemode.GameMode;
+import gg.wil.imposter.util.SettingsHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,11 @@ import java.util.*;
 public class ImposterGameMode extends GameMode {
 
     private final Logger logger;
+
     private final int maxRounds;
+    private final int answeringPhaseDuration;
+    private final int discussionPhaseDuration;
+    private final int votingPhaseDuration;
 
     private final Set<Integer> usedQuestions = new HashSet<>();
     private int roundNumber = 0;
@@ -26,10 +31,30 @@ public class ImposterGameMode extends GameMode {
 
     private final Map<UUID, Integer> scores = new HashMap<>();
 
-    public ImposterGameMode(Lobby lobby, Game game, int maxRounds) {
-        super(Mode.IMPOSTER, lobby, game, maxRounds);
+    public ImposterGameMode(Lobby lobby, Game game, Map<String, Object> settings) {
+        super(Mode.IMPOSTER, lobby, game, settings);
         this.logger = LoggerFactory.getLogger("ImposterGameMode - " + lobby.getLobbyCode());
-        this.maxRounds = maxRounds;
+
+        this.maxRounds = SettingsHelper.getIntOrDefault(settings, "maxRounds", 3);
+        this.answeringPhaseDuration = SettingsHelper.getIntOrDefault(settings, "answeringPhaseDuration", 60);
+        this.discussionPhaseDuration = SettingsHelper.getIntOrDefault(settings, "discussionPhaseDuration", 15);
+        this.votingPhaseDuration = SettingsHelper.getIntOrDefault(settings, "votingPhaseDuration", 60);
+    }
+
+    public int getMaxRounds() {
+        return maxRounds;
+    }
+
+    public int getAnsweringPhaseDuration() {
+        return answeringPhaseDuration;
+    }
+
+    public int getDiscussionPhaseDuration() {
+        return discussionPhaseDuration;
+    }
+
+    public int getVotingPhaseDuration() {
+        return votingPhaseDuration;
     }
 
     public int getRoundNumber() {
@@ -55,7 +80,7 @@ public class ImposterGameMode extends GameMode {
         if(this.roundNumber >= this.maxRounds) return;
         this.roundNumber++;
         logger.info("Starting round {}", this.roundNumber);
-        currentRound = new ImposterRound(this.lobby, this.game, this, this.roundNumber, this.maxRounds, 60);
+        currentRound = new ImposterRound(this.lobby, this.game, this, this.roundNumber, this.maxRounds);
     }
 
     public void markQuestionAsUsed(int questionID) {

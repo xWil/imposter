@@ -5,18 +5,20 @@ import gg.wil.imposter.game.Game;
 import gg.wil.imposter.game.Lobby;
 import gg.wil.imposter.game.gamemode.imposter.ImposterGameMode;
 
+import java.util.Map;
+
 public abstract class GameMode {
 
     private final Mode mode;
     protected final Lobby lobby;
     protected final Game game;
-    protected final int maxRounds;
+    protected final Map<String, Object> settings;
 
-    public GameMode(Mode mode, Lobby lobby, Game game, int maxRounds) {
+    public GameMode(Mode mode, Lobby lobby, Game game, Map<String, Object> settings) {
         this.mode = mode;
         this.lobby = lobby;
         this.game = game;
-        this.maxRounds = maxRounds;
+        this.settings = settings;
     }
 
     public Mode getMode() {
@@ -31,7 +33,7 @@ public abstract class GameMode {
         IMPOSTER(ImposterGameMode::new);
 
         private GameModeFactory factory;
-        public GameMode create(Lobby lobby, Game game, int maxRounds) { return factory.create(lobby, game, maxRounds); }
+        public GameMode create(Lobby lobby, Game game, Map<String, Object> settings) { return factory.create(lobby, game, settings); }
 
         Mode(GameModeFactory factory) {
             this.factory = factory;
@@ -39,6 +41,6 @@ public abstract class GameMode {
     }
 
     private interface GameModeFactory {
-        GameMode create(Lobby lobby, Game game, int maxRounds);
+        GameMode create(Lobby lobby, Game game, Map<String, Object> settings);
     }
 }

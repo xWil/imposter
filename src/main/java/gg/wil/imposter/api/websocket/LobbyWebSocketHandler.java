@@ -1,6 +1,9 @@
 package gg.wil.imposter.api.websocket;
 
 import gg.wil.imposter.exception.WebSocketException;
+import gg.wil.imposter.game.Lobby;
+import gg.wil.imposter.game.Player;
+import gg.wil.imposter.repo.SessionRepo;
 import gg.wil.imposter.services.LobbyService;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.stereotype.Component;
@@ -27,16 +30,19 @@ public class LobbyWebSocketHandler implements WebSocketHandler {
     @NullMarked
     public Mono<Void> handle(WebSocketSession session) {
 
-        String lobbyCode = getLobbyCode(session);
-        UUID playerID = getPlayerID(session);
+        final String lobbyCode = getLobbyCode(session);
+        final UUID sessionID = getSessionID(session);
 
         // check credentials
         try {
-            this.lobbyService.checkCredentials(lobbyCode, playerID);
+            this.lobbyService.checkCredentials(lobbyCode, sessionID);
         } catch(WebSocketException e) {
             String message = "{\n  \"type:\": \"ERROR\",\n  \"code\": \"" + e.getType() + "\",\n \"message\": \"" + e.getMessage() + "\"\n}";
             return session.send(Mono.just(session.textMessage(message))).then(session.close());
         }
+
+        final Player player = SessionRepo.getInstance().getSession(sessionID);
+        final UUID playerID = player.getUUID();
 
         Sinks.Many<String> outgoingSink = Sinks.many().unicast().onBackpressureBuffer();
 
@@ -55,9 +61,15 @@ public class LobbyWebSocketHandler implements WebSocketHandler {
         return path.substring(path.lastIndexOf("/") + 1);
     }
 
-    private UUID getPlayerID(WebSocketSession session) {
+    private UUID getSessionID(WebSocketSession session) {
         String id = UriComponentsBuilder.fromUri(session.getHandshakeInfo().getUri())
-                .build().getQueryParams().getFirst("playerId");
-        return UUID.fromString(id);
+                .build().getQueryParams().getFirst("session");
+        if(id == null) return null;
+
+        try {
+            return UUID.fromString(id);
+        } catch(IllegalArgumentException e) {
+            return null;
+        }
     }
 }

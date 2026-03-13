@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public class Player {
 
+    private final UUID sessionID;
     private final UUID uuid;
     private final String username;
 
@@ -16,9 +17,18 @@ public class Player {
     private WebSocketSession session;
     private Sinks.Many<String> outgoingSink;
 
-    private Player(UUID uuid, String username) {
+    private Player(String username) {
+        this(UUID.randomUUID(), UUID.randomUUID(), username);
+    }
+
+    private Player(UUID sessionID, UUID uuid, String username) {
+        this.sessionID = sessionID;
         this.uuid = uuid;
         this.username = username;
+    }
+
+    public UUID getSessionID() {
+        return this.sessionID;
     }
 
     public UUID getUUID() {
@@ -71,6 +81,6 @@ public class Player {
     }
 
     public static Player create(String username) {
-        return new Player(UUID.randomUUID(), username);
+        return new Player(username);
     }
 }

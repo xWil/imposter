@@ -8,11 +8,14 @@ import gg.wil.imposter.exception.lobby.CantCreateLobbyException;
 import gg.wil.imposter.exception.lobby.InvalidUsernameException;
 import gg.wil.imposter.exception.lobby.LobbyNotFoundException;
 import gg.wil.imposter.exception.lobby.PlayerNotAllowedException;
+import gg.wil.imposter.exception.websocket.AlreadyConnectedException;
 import gg.wil.imposter.exception.websocket.InvalidLobbyCodeException;
 import gg.wil.imposter.exception.websocket.InvalidPlayerIdException;
+import gg.wil.imposter.exception.websocket.InvalidSessionIdException;
 import gg.wil.imposter.game.Player;
 import gg.wil.imposter.game.Lobby;
 import gg.wil.imposter.repo.LobbyRepo;
+import gg.wil.imposter.repo.SessionRepo;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
@@ -24,10 +27,13 @@ import java.util.UUID;
 public class LobbyService {
 
     private final LobbyRepo lobbyRepo;
+    private final SessionRepo sessionRepo;
 
-    public LobbyService(LobbyRepo lobbyRepo) {
+    public LobbyService(LobbyRepo lobbyRepo, SessionRepo sessionRepo) {
         this.lobbyRepo = lobbyRepo;
+        this.sessionRepo = sessionRepo;
         LobbyRepo.setInstance(lobbyRepo);
+        SessionRepo.setInstance(sessionRepo);
     }
 
     public final Mono<LobbyResponse> createLobby() {
@@ -35,8 +41,9 @@ public class LobbyService {
         Lobby lobby = Lobby.create(host);
         if(lobby == null) return Mono.error(new CantCreateLobbyException());
         lobbyRepo.addLobby(lobby);
+        sessionRepo.addSession(host, lobby);
         String websocketURL = ImposterApplication.WEBSOCKET_URL + lobby.getLobbyCode();
-        return Mono.just(new LobbyResponse(lobby.getLobbyCode(), host.getUUID().toString(), websocketURL));
+        return Mono.just(new LobbyResponse(lobby.getLobbyCode(), host.getSessionID().toString(), host.getUUID().toString(), websocketURL));
     }
 
     public final Mono<LobbyResponse> joinLobby(String lobbyCode, String username) {
@@ -50,18 +57,20 @@ public class LobbyService {
         } catch (LobbyException e) {
             return Mono.error(e);
         }
+        sessionRepo.addSession(player, lobby);
         String websocketURL = ImposterApplication.WEBSOCKET_URL + lobby.getLobbyCode();
-        return Mono.just(new LobbyResponse(lobby.getLobbyCode(), player.getUUID().toString(), websocketURL));
+        return Mono.just(new LobbyResponse(lobby.getLobbyCode(), player.getSessionID().toString(), player.getUUID().toString(), websocketURL));
     }
 
-    public final Mono<LobbyResponse> rejoinLobby(String lobbyCode, UUID playerID) {
-        Lobby lobby = lobbyRepo.getLobby(lobbyCode);
-        if(lobby == null) return Mono.error(new LobbyNotFoundException(lobbyCode));
-        if(!lobby.hasPlayer(playerID)) return Mono.error(new PlayerNotAllowedException(lobbyCode));
+    public final Mono<LobbyResponse> rejoinLobby(UUID sessionID) {
+        Player player = this.sessionRepo.getSession(sessionID);
+        if(player == null) return Mono.error(new InvalidSessionIdException());
 
-        Player player = lobby.getPlayer(playerID);
+        Lobby lobby = this.sessionRepo.getLobby(player.getUUID());
+        if(lobby == null) return Mono.error(new InvalidSessionIdException());
+
         String websocketURL = ImposterApplication.WEBSOCKET_URL + lobby.getLobbyCode();
-        return Mono.just(new LobbyResponse(lobby.getLobbyCode(), player.getUUID().toString(), websocketURL));
+        return Mono.just(new LobbyResponse(lobby.getLobbyCode(), player.getSessionID().toString(), player.getUUID().toString(), websocketURL));
     }
 
     public final void playerConnected(String lobbyCode, UUID playerID, WebSocketSession session, Sinks.Many<String> outgoingSink) {
@@ -81,10 +90,15 @@ public class LobbyService {
         lobby.playerDisconnected(playerID);
     }
 
-    public final void checkCredentials(String lobbyCode, UUID playerID) throws WebSocketException {
+    public final void checkCredentials(String lobbyCode, UUID sessionID) throws WebSocketException {
         Lobby lobby = lobbyRepo.getLobby(lobbyCode);
         if(lobby == null) throw new InvalidLobbyCodeException();
-        if(!lobby.hasPlayer(playerID) && !lobby.getHost().getUUID().equals(playerID)) throw new InvalidPlayerIdException();
+
+        if(sessionID == null) throw new InvalidSessionIdException();
+
+        Player player = this.sessionRepo.getSession(sessionID);
+        if(player == null) throw new InvalidSessionIdException();
+        if(player.isConnected()) throw new AlreadyConnectedException();
     }
 
     public final boolean checkUsername(String username) {

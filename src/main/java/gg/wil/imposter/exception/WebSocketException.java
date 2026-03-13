@@ -11,7 +11,9 @@ public abstract class WebSocketException extends RuntimeException {
     }
 
     public enum WebSocketExceptionType {
+        ALREADY_CONNECTED,
         INVALID_LOBBY_CODE,
-        INVALID_PLAYER_ID;
+        INVALID_PLAYER_ID,
+        INVALID_SESSION_ID;
     }
 }

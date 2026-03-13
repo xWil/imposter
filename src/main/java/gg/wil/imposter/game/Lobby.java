@@ -10,6 +10,7 @@ import gg.wil.imposter.exception.lobby.AlreadyInLobbyException;
 import gg.wil.imposter.exception.lobby.InProgressException;
 import gg.wil.imposter.exception.lobby.LobbyFullException;
 import gg.wil.imposter.repo.LobbyRepo;
+import gg.wil.imposter.repo.SessionRepo;
 import gg.wil.imposter.util.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,6 +122,7 @@ public class Lobby {
         player.playerDisconnected();
         if(this.state != LobbyState.PLAYING) {
             removePlayer(playerID);
+            SessionRepo.getInstance().removeSession(player);
             broadcast(new SendPlayerLeaveMessage(playerID));
         }
     }
@@ -161,7 +163,12 @@ public class Lobby {
     public final void closeLobby() {
         logger.info("Closing lobby...");
         this.state = LobbyState.ENDED;
-        for(Player player : players.values()) player.disconnectPlayer();
+        for(Player player : players.values()) {
+            player.disconnectPlayer();
+            SessionRepo.getInstance().removeSession(player);
+        }
+        host.disconnectPlayer();
+        SessionRepo.getInstance().removeSession(host);
         LobbyRepo.getInstance().removeLobby(this.lobbyCode);
     }
 

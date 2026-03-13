@@ -1,6 +1,7 @@
 package gg.wil.imposter.api.controller;
 
 import gg.wil.imposter.api.messages.LobbyResponse;
+import gg.wil.imposter.exception.websocket.InvalidSessionIdException;
 import gg.wil.imposter.services.LobbyService;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -29,7 +30,13 @@ public class LobbyController {
     }
 
     @GetMapping("/rejoin")
-    public Mono<LobbyResponse> rejoinLobby(@RequestParam("lobby") String lobbyCode, @RequestParam("playerID") String playerID) {
-        return this.lobbyService.rejoinLobby(lobbyCode, UUID.fromString(playerID));
+    public Mono<LobbyResponse> rejoinLobby(@RequestParam("session") String sessionID) {
+        UUID session = null;
+        try {
+            session = UUID.fromString(sessionID);
+        } catch(IllegalArgumentException e) {
+            return Mono.error(new InvalidSessionIdException());
+        }
+        return this.lobbyService.rejoinLobby(session);
     }
 }

@@ -29,6 +29,7 @@ public abstract class LobbyException extends RuntimeException {
         ALREADY_IN_LOBBY,
         CANT_CREATE_LOBBY,
         GAME_IN_PROGRESS,
+        INVALID_USERNAME,
         LOBBY_FULL,
         LOBBY_NOT_FOUND,
         PLAYER_NOT_ALLOWED;

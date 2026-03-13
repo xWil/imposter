@@ -5,6 +5,7 @@ import gg.wil.imposter.api.messages.LobbyResponse;
 import gg.wil.imposter.exception.LobbyException;
 import gg.wil.imposter.exception.WebSocketException;
 import gg.wil.imposter.exception.lobby.CantCreateLobbyException;
+import gg.wil.imposter.exception.lobby.InvalidUsernameException;
 import gg.wil.imposter.exception.lobby.LobbyNotFoundException;
 import gg.wil.imposter.exception.lobby.PlayerNotAllowedException;
 import gg.wil.imposter.exception.websocket.InvalidLobbyCodeException;
@@ -41,6 +42,8 @@ public class LobbyService {
     public final Mono<LobbyResponse> joinLobby(String lobbyCode, String username) {
         Lobby lobby = lobbyRepo.getLobby(lobbyCode);
         if(lobby == null) return Mono.error(new LobbyNotFoundException(lobbyCode));
+        if(!checkUsername(username)) return Mono.error(new InvalidUsernameException(lobbyCode));
+
         Player player = Player.create(username);
         try {
             lobby.addPlayer(player);
@@ -82,5 +85,22 @@ public class LobbyService {
         Lobby lobby = lobbyRepo.getLobby(lobbyCode);
         if(lobby == null) throw new InvalidLobbyCodeException();
         if(!lobby.hasPlayer(playerID) && !lobby.getHost().getUUID().equals(playerID)) throw new InvalidPlayerIdException();
+    }
+
+    public final boolean checkUsername(String username) {
+        if(username == null) return false;
+
+        username = username.trim();
+        if(username.length() > 16 || username.isEmpty()) return false;
+        if(username.chars().anyMatch(Character::isISOControl)) return false;
+        if(username.chars().anyMatch(c ->
+                c == 0x200B || // zero-width space
+                c == 0x200C || // zero-width non-joiner
+                c == 0x200D || // zero-width joiner
+                c == 0xFEFF    // zero-width no-break space
+        )) return false;
+
+        // a
+        return username.matches("^[a-zA-Z0-9_ .!$-]+$");
     }
 }

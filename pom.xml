@@ -10,7 +10,7 @@
     </parent>
     <groupId>gg.wil</groupId>
     <artifactId>imposter</artifactId>
-    <version>0.2</version>
+    <version>0.3</version>
     <name>imposter</name>
     <description>imposter</description>
     <url/>
@@ -51,6 +51,11 @@
             <artifactId>bucket4j_jdk17-core</artifactId>
             <groupId>com.bucket4j</groupId>
             <version>8.17.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>3.2.3</version>
         </dependency>
 
         <dependency>

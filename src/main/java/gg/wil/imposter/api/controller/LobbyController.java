@@ -1,5 +1,7 @@
 package gg.wil.imposter.api.controller;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import gg.wil.imposter.api.messages.LobbyResponse;
 import gg.wil.imposter.exception.websocket.InvalidSessionIdException;
 import gg.wil.imposter.services.LobbyService;
@@ -13,8 +15,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -26,14 +26,16 @@ public class LobbyController {
     private static final int REFILL_TIME = 10;
     private final LobbyService lobbyService;
 
-    Map<String, Bucket> cache = new HashMap<>();
+    private final Cache<String, Bucket> cache = Caffeine.newBuilder()
+            .expireAfterAccess(Duration.ofMinutes(2))
+            .maximumSize(10_000).build();
 
     public LobbyController(LobbyService lobbyService) {
         this.lobbyService = lobbyService;
     }
 
     private Bucket getBucket(String ip) {
-        return this.cache.computeIfAbsent(ip, _ -> buildBucket());
+        return this.cache.get(ip, _ -> buildBucket());
     }
 
     private Bucket buildBucket() {

@@ -46,6 +46,18 @@ public class LobbyController {
     }
 
     private String getClientIP(ServerWebExchange exchange) {
+        String header = exchange.getRequest().getHeaders().getFirst("X-Forwarded-For");
+        if (header != null && !header.isEmpty() && !"unknown".equalsIgnoreCase(header)) {
+            return header.split(",")[0].trim();
+        }
+
+        // fallback to X-Real-IP if X-Forwarded-For is not present
+        header = exchange.getRequest().getHeaders().getFirst("X-Real-IP");
+        if (header != null && !header.isEmpty() && !"unknown".equalsIgnoreCase(header)) {
+            return header;
+        }
+
+        // fallback to the direct remote address if no proxy headers are found
         if (exchange.getRequest().getRemoteAddress() != null) {
             return exchange.getRequest().getRemoteAddress().getAddress().getHostAddress();
         }

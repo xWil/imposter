@@ -4,6 +4,7 @@ import gg.wil.imposter.api.messages.ErrorResponse;
 import gg.wil.imposter.exception.LobbyException;
 import gg.wil.imposter.exception.WebSocketException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.ErrorResponseException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -18,5 +19,10 @@ public class APIExceptionHandler {
     @ExceptionHandler(WebSocketException.class)
     public ResponseEntity<?> handleWebSocketException(WebSocketException e) {
         return ResponseEntity.status(409).body(new ErrorResponse(e.getType().toString(), e.getMessage()));
+    }
+
+    @ExceptionHandler(ErrorResponseException.class)
+    public ResponseEntity<?> handleErrorResponseException(ErrorResponseException e) {
+        return ResponseEntity.status(e.getStatusCode()).body(new ErrorResponse(e.getStatusCode().toString().split(" ")[1], e.getMessage()));
     }
 }

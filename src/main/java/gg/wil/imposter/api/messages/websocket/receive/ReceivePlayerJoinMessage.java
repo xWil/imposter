@@ -13,14 +13,14 @@ public class ReceivePlayerJoinMessage extends WebSocketReceiveMessage {
         return iconData;
     }
 
-    public ReceivePlayerJoinMessage(Player from, JsonObject json) {
+    public ReceivePlayerJoinMessage(Player from, JsonObject data) {
         super(WebSocketReceiveMessageType.PLAYER_JOIN, from);
 
-        String shape = json.get("shape").getAsString();
-        String shapeColor = json.get("shapeColor").getAsString();
-        String backgroundColor = json.get("backgroundColor").getAsString();
-        String strokeColor = json.get("strokeColor").getAsString();
-        int strokeSize = Math.clamp(json.get("strokeSize").getAsInt(), 0, 20);
+        String shape = super.getString(data, "shape");
+        String shapeColor = super.getString(data, "shapeColor");
+        String backgroundColor = super.getString(data, "backgroundColor");
+        String strokeColor = super.getString(data, "strokeColor");
+        int strokeSize = Math.clamp(super.getInt(data, "strokeSize"), 0, 20);
         iconData = new IconData(shape, shapeColor, backgroundColor, strokeColor, strokeSize);
     }
 }

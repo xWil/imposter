@@ -1,14 +1,20 @@
 package gg.wil.imposter.game;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessageType;
 import gg.wil.imposter.api.messages.websocket.WebSocketSendMessage;
 import gg.wil.imposter.api.messages.websocket.send.SendPlayerLeaveMessage;
 import gg.wil.imposter.exception.LobbyException;
+import gg.wil.imposter.exception.MessageException;
 import gg.wil.imposter.exception.lobby.AlreadyInLobbyException;
 import gg.wil.imposter.exception.lobby.InProgressException;
 import gg.wil.imposter.exception.lobby.LobbyFullException;
+import gg.wil.imposter.exception.message.InvalidDataException;
+import gg.wil.imposter.exception.message.InvalidTypeException;
+import gg.wil.imposter.exception.message.MissingFieldException;
 import gg.wil.imposter.repo.LobbyRepo;
 import gg.wil.imposter.repo.SessionRepo;
 import gg.wil.imposter.util.Scheduler;
@@ -33,8 +39,8 @@ public class Lobby {
     private final Game game;
 
     private Lobby(String lobbyCode, Player host) {
-        logger = LoggerFactory.getLogger("Lobby-" + lobbyCode);
-        logger.info("Lobby created with code {}", lobbyCode);
+        this.logger = LoggerFactory.getLogger("Lobby - " + lobbyCode);
+        this.logger.info("Lobby created with code {}", lobbyCode);
         this.lobbyCode = lobbyCode;
         this.state = LobbyState.WAITING;
         this.host = host;
@@ -43,7 +49,7 @@ public class Lobby {
         // If the host doesn't connect to the websocket within 5 seconds, delete the lobby
         Scheduler.INSTANCE.runTaskLater(() -> {
             if(host.isConnected()) return;
-            logger.info("Lobby {} timed out due to the host not connecting", lobbyCode);
+            this.logger.info("Lobby {} timed out due to the host not connecting", lobbyCode);
             this.game.stopGame();
         }, 5000);
     }
@@ -130,17 +136,48 @@ public class Lobby {
     public final Mono<Void> receiveMessage(UUID playerID, String message) {
         if(!players.containsKey(playerID) && !playerID.equals(host.getUUID())) return Mono.empty();
         try {
+            // parse message to JSON
             JsonObject object = JsonParser.parseString(message).getAsJsonObject();
-            String typeString = object.get("type").getAsString();
-            if(typeString == null) return Mono.empty();
 
-            WebSocketReceiveMessageType type = WebSocketReceiveMessageType.valueOf(typeString);
+            // check if the 'type' field is present and valid
+            if(!object.has("type")) throw new MissingFieldException("Message is missing field: 'type'");
+            JsonElement typeField = object.get("type");
+            if(!typeField.isJsonPrimitive() || !typeField.getAsJsonPrimitive().isString()) throw new InvalidTypeException("Field 'type' is of an invalid type, should be of type STRING");
+            String typeString = typeField.getAsString().trim();
+
+            WebSocketReceiveMessageType type;
+            try {
+                type = WebSocketReceiveMessageType.valueOf(typeString);
+            } catch (IllegalArgumentException ex) {
+                throw new InvalidDataException("type", ex);
+            }
+
+            // check if the 'data' field is present and valid
+            if(!object.has("data")) throw new MissingFieldException("Message is missing field: 'data'");
+            if(!object.get("data").isJsonObject()) throw new InvalidTypeException("Field 'data' is of an invalid type, should be of type object");
             JsonObject data = object.getAsJsonObject("data");
 
+            // check if player is in the lobby
             Player player = players.get(playerID);
-            if(player == null) player = host;
-            game.receiveMessage(type.create(player, data));
-        } catch (Exception ignored) {}
+            if(player == null) {
+                if(!playerID.equals(host.getUUID())) {
+                    this.logger.warn("Received message from player {} while not in the lobby", playerID);
+                    return Mono.empty();
+                }
+                player = host;
+            }
+
+            this.game.receiveMessage(type.create(player, data));
+
+        } catch (MessageException me) {
+            this.logger.warn("Invalid message received from player {}: {}", playerID, me.getType());
+            this.logger.warn("Reason: {}", me.getMessage());
+        } catch (JsonSyntaxException jse) {
+            this.logger.warn("Invalid JSON received from player {}: {}", playerID, jse.getMessage());
+        } catch (Exception ex) {
+            this.logger.error("An error occurred while processing a message from player {}", playerID, ex);
+        }
+
         return Mono.empty();
     }
 

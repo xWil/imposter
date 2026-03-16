@@ -24,6 +24,8 @@ import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -211,12 +213,23 @@ public class Lobby {
 
     ///  STATIC
 
+    private static final Logger lobbyLogger = LoggerFactory.getLogger("Lobby");
     private static final char[] allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+    private static final SecureRandom lobbyRandom = createLobbyRandom();
+
+    private static SecureRandom createLobbyRandom() {
+        try {
+            return SecureRandom.getInstance("NativePRNGNonBlocking");
+        } catch(NoSuchAlgorithmException ex) {
+            lobbyLogger.warn("Failed to get 'NativePRNGNonBlocking' algorithm, falling back to default.", ex);
+            return new SecureRandom();
+        }
+    }
 
     public static Lobby create(Player host) {
         String code = generateNewLobbyCode();
         if(code == null) return null;
-        return new Lobby(generateNewLobbyCode(), host);
+        return new Lobby(code, host);
     }
 
     private static String generateNewLobbyCode() {
@@ -229,7 +242,7 @@ public class Lobby {
 
             code = new StringBuilder();
             for(int i = 0; i < 6; i++) {
-                code.append(allowedChars[(int) (Math.random() * allowedChars.length)]);
+                code.append(allowedChars[lobbyRandom.nextInt(allowedChars.length)]);
             }
             success = LobbyRepo.getInstance().getLobby(code.toString()) == null;
         }

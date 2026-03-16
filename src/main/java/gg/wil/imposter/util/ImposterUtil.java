@@ -18,4 +18,8 @@ public class ImposterUtil {
             return new SecureRandom();
         }
     }
+
+    public static boolean checkValidHexColorCode(String colorCode) {
+        return colorCode.matches("#[0-9a-fA-F]{6}");
+    }
 }

@@ -22,6 +22,6 @@ public class ReceiveIconChangeMessage extends WebSocketReceiveMessage {
         String backgroundColor = super.getString(data, "backgroundColor");
         String strokeColor = super.getString(data, "strokeColor");
         int strokeSize = Math.clamp(super.getInt(data, "strokeSize"), 0, 20);
-        iconData = new IconData(shape, shapeColor, backgroundColor, strokeColor, strokeSize);
+        iconData = IconData.create(shape, shapeColor, backgroundColor, strokeColor, strokeSize);
     }
 }

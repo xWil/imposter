@@ -1,16 +1,14 @@
 package gg.wil.imposter.services;
 
-import gg.wil.imposter.ImposterApplication;
+import gg.wil.imposter.Config;
 import gg.wil.imposter.api.messages.LobbyResponse;
 import gg.wil.imposter.exception.LobbyException;
 import gg.wil.imposter.exception.WebSocketException;
 import gg.wil.imposter.exception.lobby.CantCreateLobbyException;
 import gg.wil.imposter.exception.lobby.InvalidUsernameException;
 import gg.wil.imposter.exception.lobby.LobbyNotFoundException;
-import gg.wil.imposter.exception.lobby.PlayerNotAllowedException;
 import gg.wil.imposter.exception.websocket.AlreadyConnectedException;
 import gg.wil.imposter.exception.websocket.InvalidLobbyCodeException;
-import gg.wil.imposter.exception.websocket.InvalidPlayerIdException;
 import gg.wil.imposter.exception.websocket.InvalidSessionIdException;
 import gg.wil.imposter.game.Player;
 import gg.wil.imposter.game.Lobby;
@@ -42,7 +40,7 @@ public class LobbyService {
         if(lobby == null) return Mono.error(new CantCreateLobbyException());
         lobbyRepo.addLobby(lobby);
         sessionRepo.addSession(host, lobby);
-        String websocketURL = ImposterApplication.WEBSOCKET_URL + lobby.getLobbyCode();
+        String websocketURL = Config.WEBSOCKET_URL + lobby.getLobbyCode();
         return Mono.just(new LobbyResponse(lobby.getLobbyCode(), host.getSessionID().toString(), host.getUUID().toString(), websocketURL));
     }
 
@@ -58,7 +56,7 @@ public class LobbyService {
             return Mono.error(e);
         }
         sessionRepo.addSession(player, lobby);
-        String websocketURL = ImposterApplication.WEBSOCKET_URL + lobby.getLobbyCode();
+        String websocketURL = Config.WEBSOCKET_URL + lobby.getLobbyCode();
         return Mono.just(new LobbyResponse(lobby.getLobbyCode(), player.getSessionID().toString(), player.getUUID().toString(), websocketURL));
     }
 
@@ -69,7 +67,7 @@ public class LobbyService {
         Lobby lobby = this.sessionRepo.getLobby(player.getUUID());
         if(lobby == null) return Mono.error(new InvalidSessionIdException());
 
-        String websocketURL = ImposterApplication.WEBSOCKET_URL + lobby.getLobbyCode();
+        String websocketURL = Config.WEBSOCKET_URL + lobby.getLobbyCode();
         return Mono.just(new LobbyResponse(lobby.getLobbyCode(), player.getSessionID().toString(), player.getUUID().toString(), websocketURL));
     }
 

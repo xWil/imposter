@@ -9,14 +9,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class ImposterApplication {
 
-    public static String WEBSOCKET_URL;
-
     public ImposterApplication(Scheduler scheduler) {
         Scheduler.INSTANCE = scheduler;
     }
 
     public static void main(String[] args) {
-        WEBSOCKET_URL = "wss://imposter.wil.gg/ws/lobby/";
         SpringApplication.run(ImposterApplication.class, args);
     }
 

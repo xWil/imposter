@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Game {
 
@@ -20,7 +20,7 @@ public class Game {
     private final ComponentManager componentManager;
     private GameMode gameMode;
 
-    private final CopyOnWriteArraySet<WebSocketReceiveMessage> unprocessedMessages = new CopyOnWriteArraySet<>();
+    private final ConcurrentLinkedQueue<WebSocketReceiveMessage> unprocessedMessages = new ConcurrentLinkedQueue<>();
 
     public Game(Lobby lobby) {
         this.logger = LoggerFactory.getLogger("Game - " + lobby.getLobbyCode());
@@ -55,12 +55,21 @@ public class Game {
     }
 
     public void receiveMessage(WebSocketReceiveMessage message) {
-        unprocessedMessages.add(message);
+        this.unprocessedMessages.add(message);
     }
 
     public Set<WebSocketReceiveMessage> getUnprocessedMessages(boolean clear) {
-        Set<WebSocketReceiveMessage> messages = new HashSet<>(unprocessedMessages);
-        if(clear) unprocessedMessages.clear();
+        Set<WebSocketReceiveMessage> messages = new HashSet<>();
+
+        if (clear) {
+            WebSocketReceiveMessage msg;
+            while ((msg = this.unprocessedMessages.poll()) != null) {
+                messages.add(msg);
+            }
+        } else {
+            messages.addAll(this.unprocessedMessages);
+        }
+
         return messages;
     }
 }

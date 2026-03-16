@@ -11,6 +11,7 @@ import gg.wil.imposter.game.gamemode.imposter.questions.QuestionPair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.SecureRandom;
 import java.util.*;
 
 public class ImposterRound {
@@ -21,6 +22,7 @@ public class ImposterRound {
     private final ImposterGameMode gameMode;
     private final int roundNumber;
     private final int maxRounds;
+    private final SecureRandom random;
 
     private Phase phase = Phase.ANSWERING;
     private Timer phaseTimer;
@@ -30,11 +32,12 @@ public class ImposterRound {
     private final Map<UUID, String> answers = new HashMap<>();
     private final Map<UUID, UUID> votes = new HashMap<>();
 
-    public ImposterRound(Lobby lobby, Game game, ImposterGameMode gameMode, int roundNumber, int maxRounds) {
+    public ImposterRound(Lobby lobby, Game game, ImposterGameMode gameMode, SecureRandom random, int roundNumber, int maxRounds) {
         this.logger = LoggerFactory.getLogger("ImposterRound - " + lobby.getLobbyCode());
         this.lobby = lobby;
         this.game = game;
         this.gameMode = gameMode;
+        this.random = random;
         this.roundNumber = roundNumber;
         this.maxRounds = maxRounds;
 
@@ -45,18 +48,17 @@ public class ImposterRound {
 
     private void getImposter() {
         Collection<Player> players = this.lobby.getConnectedPlayers();
-        Random random = new Random();
         ArrayList<Player> playerList = new ArrayList<>(players);
         this.imposter = playerList.get(random.nextInt(playerList.size()));
     }
 
     private void getQuestions() {
-        QuestionPair pair = ImposterQuestions.getRandomQuestion();
-        while(this.gameMode.hasQuestionBeenUsed(pair.id())) {
-            pair = ImposterQuestions.getRandomQuestion();
-        }
-
+        QuestionPair pair;
+        do {
+            pair = ImposterQuestions.getRandomQuestion(this.random);
+        } while(this.gameMode.hasQuestionBeenUsed(pair.id()));
         this.gameMode.markQuestionAsUsed(pair.id());
+
         FilteredQuestion questions = pair.filterType().filter(pair, lobby, game);
         this.currentQuestion = questions.question();
         this.imposterQuestion = questions.imposterQuestion();

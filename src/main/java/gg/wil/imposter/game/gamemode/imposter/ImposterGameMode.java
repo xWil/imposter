@@ -10,15 +10,18 @@ import gg.wil.imposter.game.Game;
 import gg.wil.imposter.game.Lobby;
 import gg.wil.imposter.game.Player;
 import gg.wil.imposter.game.gamemode.GameMode;
+import gg.wil.imposter.util.ImposterUtil;
 import gg.wil.imposter.util.SettingsHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.SecureRandom;
 import java.util.*;
 
 public class ImposterGameMode extends GameMode {
 
     private final Logger logger;
+    private final SecureRandom random;
 
     private final int maxRounds;
     private final int answeringPhaseDuration;
@@ -34,6 +37,7 @@ public class ImposterGameMode extends GameMode {
     public ImposterGameMode(Lobby lobby, Game game, Map<String, Object> settings) {
         super(Mode.IMPOSTER, lobby, game, settings);
         this.logger = LoggerFactory.getLogger("ImposterGameMode - " + lobby.getLobbyCode());
+        this.random = ImposterUtil.generateSecureRandom();
 
         this.maxRounds = SettingsHelper.getIntOrDefault(settings, "maxRounds", 3);
         this.answeringPhaseDuration = SettingsHelper.getIntOrDefault(settings, "answeringPhaseDuration", 60);
@@ -80,7 +84,7 @@ public class ImposterGameMode extends GameMode {
         if(this.roundNumber >= this.maxRounds) return;
         this.roundNumber++;
         logger.info("Starting round {}", this.roundNumber);
-        currentRound = new ImposterRound(this.lobby, this.game, this, this.roundNumber, this.maxRounds);
+        currentRound = new ImposterRound(this.lobby, this.game, this, this.random, this.roundNumber, this.maxRounds);
     }
 
     public void markQuestionAsUsed(int questionID) {

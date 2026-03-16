@@ -41,8 +41,8 @@ public class ImposterQuestions {
         reloadQuestions();
     }
 
-    public static QuestionPair getRandomQuestion() {
-        return QUESTIONS.get(new Random().nextInt(QUESTIONS.size()));
+    public static QuestionPair getRandomQuestion(Random random) {
+        return QUESTIONS.get(random.nextInt(QUESTIONS.size()));
     }
 
 }

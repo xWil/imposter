@@ -17,6 +17,7 @@ import gg.wil.imposter.exception.message.InvalidTypeException;
 import gg.wil.imposter.exception.message.MissingFieldException;
 import gg.wil.imposter.repo.LobbyRepo;
 import gg.wil.imposter.repo.SessionRepo;
+import gg.wil.imposter.util.ImposterUtil;
 import gg.wil.imposter.util.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +25,6 @@ import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Collection;
 import java.util.UUID;
@@ -213,18 +213,8 @@ public class Lobby {
 
     ///  STATIC
 
-    private static final Logger lobbyLogger = LoggerFactory.getLogger("Lobby");
     private static final char[] allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
-    private static final SecureRandom lobbyRandom = createLobbyRandom();
-
-    private static SecureRandom createLobbyRandom() {
-        try {
-            return SecureRandom.getInstance("NativePRNGNonBlocking");
-        } catch(NoSuchAlgorithmException ex) {
-            lobbyLogger.warn("Failed to get 'NativePRNGNonBlocking' algorithm, falling back to default.", ex);
-            return new SecureRandom();
-        }
-    }
+    private static final SecureRandom lobbyRandom = ImposterUtil.generateSecureRandom();
 
     public static Lobby create(Player host) {
         String code = generateNewLobbyCode();

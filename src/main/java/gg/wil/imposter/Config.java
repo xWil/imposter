@@ -8,7 +8,7 @@ public class Config {
 
     public static String WEBSOCKET_URL;
 
-    @Value("${websocket-url}")
+    @Value("${app.websocket-url}")
     public void setWebsocketUrl(String websocketUrl) {
         WEBSOCKET_URL = websocketUrl;
     }

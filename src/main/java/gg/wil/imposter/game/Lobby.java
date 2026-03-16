@@ -21,6 +21,7 @@ import gg.wil.imposter.util.ImposterUtil;
 import gg.wil.imposter.util.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.config.ScheduledTask;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
@@ -37,8 +38,8 @@ public class Lobby {
     private LobbyState state;
     private final Player host;
     private final ConcurrentHashMap<UUID, Player> players = new ConcurrentHashMap<>();
-
     private final Game game;
+    private final ScheduledTask closeTask;
 
     private Lobby(String lobbyCode, Player host) {
         this.logger = LoggerFactory.getLogger("Lobby - " + lobbyCode);
@@ -49,7 +50,7 @@ public class Lobby {
         this.game = new Game(this);
 
         // If the host doesn't connect to the websocket within 5 seconds, delete the lobby
-        Scheduler.INSTANCE.runTaskLater(() -> {
+        this.closeTask = Scheduler.INSTANCE.runTaskLater(() -> {
             if(host.isConnected()) return;
             this.logger.info("Lobby {} timed out due to the host not connecting", lobbyCode);
             this.game.stopGame();
@@ -110,6 +111,11 @@ public class Lobby {
         if(!this.players.containsKey(playerID)) {
             if(!host.getUUID().equals(playerID)) return;
             player = this.host;
+
+            // cancel lobby close task
+            if(this.closeTask.nextExecution() != null) {
+                this.closeTask.cancel();
+            }
         } else {
             player = this.players.get(playerID);
         }

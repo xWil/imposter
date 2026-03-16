@@ -34,7 +34,7 @@ public class SendAnswersMessage extends WebSocketSendMessage {
         data.addProperty("time", time);
 
         JsonObject answersObject = new JsonObject();
-        answers.forEach((uuid, answer) -> answersObject.addProperty(uuid.toString(), answer));
+        answers.forEach((uuid, answer) -> answersObject.addProperty(uuid.toString(), super.sanitizeString(answer)));
 
         data.add("answers", answersObject);
         jsonObject.add("data", data);

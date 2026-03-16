@@ -41,7 +41,7 @@ public class SendQuestionMessage extends WebSocketSendMessage {
         message.addProperty("type", getType().toString());
 
         JsonObject data = new JsonObject();
-        data.addProperty("question", this.question);
+        data.addProperty("question", super.sanitizeString(this.question));
         data.addProperty("roundNumber", this.roundNumber);
         data.addProperty("maxRounds", this.maxRounds);
         data.addProperty("time", this.time);

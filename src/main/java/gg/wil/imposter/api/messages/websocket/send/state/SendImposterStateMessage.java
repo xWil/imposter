@@ -46,10 +46,10 @@ public class SendImposterStateMessage extends SendGameStateMessage {
 
         // round specific
         data.addProperty("phase", phase);
-        data.addProperty("question", question);
+        data.addProperty("question", super.sanitizeString(question));
 
         JsonObject answersObject = new JsonObject();
-        if(answers != null) answers.forEach((uuid, answer) -> answersObject.addProperty(uuid.toString(), answer));
+        if(answers != null) answers.forEach((uuid, answer) -> answersObject.addProperty(uuid.toString(), super.sanitizeString(answer)));
         data.add("answers", answersObject);
     }
 }

@@ -34,11 +34,11 @@ public class SendVotingStartMessage extends WebSocketSendMessage {
         message.addProperty("type", getType().toString());
 
         JsonObject data = new JsonObject();
-        data.addProperty("question", question);
-        data.addProperty("time", time);
+        data.addProperty("question", super.sanitizeString(this.question));
+        data.addProperty("time", this.time);
 
         JsonObject answersObject = new JsonObject();
-        answers.forEach((uuid, answer) -> answersObject.addProperty(uuid.toString(), answer));
+        this.answers.forEach((uuid, answer) -> answersObject.addProperty(uuid.toString(), super.sanitizeString(answer)));
 
         data.add("answers", answersObject);
         message.add("data", data);

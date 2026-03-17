@@ -2,9 +2,12 @@ package gg.wil.imposter.api.websocket;
 
 import gg.wil.imposter.Config;
 import gg.wil.imposter.exception.WebSocketException;
+import gg.wil.imposter.game.Player;
 import gg.wil.imposter.repo.SessionRepo;
 import gg.wil.imposter.services.LobbyService;
 import gg.wil.imposter.util.ImposterUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -26,6 +29,8 @@ import java.util.UUID;
 @Configuration
 @EnableWebFlux
 public class WebSocketConfig {
+
+    private static Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
 
     @Bean
     public HandlerMapping webSocketMapping(LobbyWebSocketHandler handler) {
@@ -68,13 +73,15 @@ public class WebSocketConfig {
                 String ip = ImposterUtil.getClientIP(exchange);
                 SessionRepo repo = SessionRepo.getInstance();
                 if(repo.getConnectionCount(ip) >= Config.WEBSOCKET_MAX_CONNECTIONS) {
+                    logger.warn("Connection refused from {} due to having too many other connections.", ip);
                     exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
                     return exchange.getResponse().setComplete();
                 }
                 repo.addConnection(ip);
-                repo.getSession(sessionID).setWebsocketIP(ip);
+                Player player = repo.getSession(sessionID);
+                if(player != null) player.setWebsocketIP(ip);
 
-                return super.handleRequest(exchange, handler);
+                return super.handleRequest(exchange, handler).doOnError(_ -> repo.removeConnection(ip));
             }
         });
     }

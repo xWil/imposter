@@ -22,14 +22,12 @@ public class SessionRepo {
     private final ConcurrentHashMap<String, Integer> connections = new ConcurrentHashMap<>();
 
     public void addConnection(String ip) {
-        this.connections.put(ip, this.connections.getOrDefault(ip, 0) + 1);
+        this.connections.merge(ip, 1, Integer::sum);
     }
 
     public void removeConnection(String ip) {
-        if(ip == null || !this.connections.containsKey(ip)) return;
-
-        if(this.connections.get(ip) <= 1) this.connections.remove(ip);
-        else this.connections.put(ip, connections.getOrDefault(ip, 0) - 1);
+        if(ip == null) return;
+        this.connections.computeIfPresent(ip, (_, count) -> count <= 1 ? null : count - 1);
     }
 
     public int getConnectionCount(String ip) {

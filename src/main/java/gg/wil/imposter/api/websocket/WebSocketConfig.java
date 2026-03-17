@@ -1,5 +1,6 @@
 package gg.wil.imposter.api.websocket;
 
+import gg.wil.imposter.Config;
 import gg.wil.imposter.exception.WebSocketException;
 import gg.wil.imposter.services.LobbyService;
 import org.springframework.context.annotation.Bean;
@@ -11,8 +12,10 @@ import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.server.support.HandshakeWebSocketService;
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter;
+import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.server.WebsocketServerSpec;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +39,9 @@ public class WebSocketConfig {
 
     @Bean
     public WebSocketHandlerAdapter handlerAdapter(LobbyService lobbyService) {
-        return new WebSocketHandlerAdapter(new HandshakeWebSocketService() {
+        ReactorNettyRequestUpgradeStrategy strategy = new ReactorNettyRequestUpgradeStrategy(() -> WebsocketServerSpec.builder().maxFramePayloadLength(Config.WEBSOCKET_MAX_SIZE));
+
+        return new WebSocketHandlerAdapter(new HandshakeWebSocketService(strategy) {
             @Override
             public Mono<Void> handleRequest(ServerWebExchange exchange, WebSocketHandler handler) {
                 String path = exchange.getRequest().getURI().getPath();

@@ -5,6 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import gg.wil.imposter.api.messages.LobbyResponse;
 import gg.wil.imposter.exception.websocket.InvalidSessionIdException;
 import gg.wil.imposter.services.LobbyService;
+import gg.wil.imposter.util.ImposterUtil;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.BandwidthBuilder;
 import io.github.bucket4j.Bucket;
@@ -45,28 +46,9 @@ public class LobbyController {
         return Bucket.builder().addLimit(bandwidth).build();
     }
 
-    private String getClientIP(ServerWebExchange exchange) {
-        String header = exchange.getRequest().getHeaders().getFirst("X-Forwarded-For");
-        if (header != null && !header.isEmpty() && !"unknown".equalsIgnoreCase(header)) {
-            return header.split(",")[0].trim();
-        }
-
-        // fallback to X-Real-IP if X-Forwarded-For is not present
-        header = exchange.getRequest().getHeaders().getFirst("X-Real-IP");
-        if (header != null && !header.isEmpty() && !"unknown".equalsIgnoreCase(header)) {
-            return header;
-        }
-
-        // fallback to the direct remote address if no proxy headers are found
-        if (exchange.getRequest().getRemoteAddress() != null) {
-            return exchange.getRequest().getRemoteAddress().getAddress().getHostAddress();
-        }
-        return "unknown";
-    }
-
     @GetMapping("/create")
     public Mono<LobbyResponse> createLobby(ServerWebExchange exchange) {
-        Bucket bucket = getBucket(getClientIP(exchange));
+        Bucket bucket = getBucket(ImposterUtil.getClientIP(exchange));
 
         if(bucket.tryConsume(1)) {
             return this.lobbyService.createLobby();
@@ -76,7 +58,7 @@ public class LobbyController {
 
     @GetMapping("/join")
     public Mono<LobbyResponse> joinLobby(ServerWebExchange exchange, @RequestParam("lobby") String lobbyCode, @RequestParam("username") String username) {
-        Bucket bucket = getBucket(getClientIP(exchange));
+        Bucket bucket = getBucket(ImposterUtil.getClientIP(exchange));
 
         if(bucket.tryConsume(1)) {
             return this.lobbyService.joinLobby(lobbyCode, username);
@@ -86,7 +68,7 @@ public class LobbyController {
 
     @GetMapping("/rejoin")
     public Mono<LobbyResponse> rejoinLobby(ServerWebExchange exchange, @RequestParam("session") String sessionID) {
-        Bucket bucket = getBucket(getClientIP(exchange));
+        Bucket bucket = getBucket(ImposterUtil.getClientIP(exchange));
 
         if(bucket.tryConsume(1)) {
             UUID session = null;

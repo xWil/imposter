@@ -1,7 +1,6 @@
 package gg.wil.imposter.api.websocket;
 
 import gg.wil.imposter.exception.WebSocketException;
-import gg.wil.imposter.game.Lobby;
 import gg.wil.imposter.game.Player;
 import gg.wil.imposter.repo.SessionRepo;
 import gg.wil.imposter.services.LobbyService;
@@ -53,7 +52,10 @@ public class LobbyWebSocketHandler implements WebSocketHandler {
                 .onErrorResume(_ -> Mono.empty())
                 .then();
 
-        return session.send(outgoing).and(incoming.doFinally(signalType -> this.lobbyService.playerDisconnected(lobbyCode, playerID)));
+        return session.send(outgoing).and(incoming.doFinally(signalType -> {
+            SessionRepo.getInstance().removeConnection(player.getWebsocketIP());
+            this.lobbyService.playerDisconnected(lobbyCode, playerID);
+        }));
     }
 
     private String getLobbyCode(WebSocketSession session) {

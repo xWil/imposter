@@ -14,6 +14,7 @@ public class Player {
 
     private IconData iconData;
 
+    private String websocketIP;
     private WebSocketSession session;
     private Sinks.Many<String> outgoingSink;
 
@@ -57,6 +58,14 @@ public class Player {
 
     public IconData getIconData() {
         return this.iconData;
+    }
+
+    public void setWebsocketIP(String websocketIP) {
+        this.websocketIP = websocketIP;
+    }
+
+    public String getWebsocketIP() {
+        return this.websocketIP;
     }
 
     public void playerConnected(WebSocketSession session, Sinks.Many<String> outgoingSink) {

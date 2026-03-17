@@ -18,6 +18,24 @@ public class SessionRepo {
         return INSTANCE;
     }
 
+    // IP, connection count
+    private final ConcurrentHashMap<String, Integer> connections = new ConcurrentHashMap<>();
+
+    public void addConnection(String ip) {
+        this.connections.put(ip, this.connections.getOrDefault(ip, 0) + 1);
+    }
+
+    public void removeConnection(String ip) {
+        if(ip == null || !this.connections.containsKey(ip)) return;
+
+        if(this.connections.get(ip) <= 1) this.connections.remove(ip);
+        else this.connections.put(ip, connections.getOrDefault(ip, 0) - 1);
+    }
+
+    public int getConnectionCount(String ip) {
+        return connections.getOrDefault(ip, 0);
+    }
+
     // SessionID, Player
     private final ConcurrentHashMap<UUID, Player> sessions = new ConcurrentHashMap<>();
     // PlayerID, Lobby

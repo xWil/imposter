@@ -2,7 +2,9 @@ package gg.wil.imposter.api.websocket;
 
 import gg.wil.imposter.Config;
 import gg.wil.imposter.exception.WebSocketException;
+import gg.wil.imposter.repo.SessionRepo;
 import gg.wil.imposter.services.LobbyService;
+import gg.wil.imposter.util.ImposterUtil;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -61,6 +63,16 @@ public class WebSocketConfig {
                     exchange.getResponse().setStatusCode(HttpStatus.BAD_REQUEST);
                     return exchange.getResponse().setComplete();
                 }
+
+                // check max connections
+                String ip = ImposterUtil.getClientIP(exchange);
+                SessionRepo repo = SessionRepo.getInstance();
+                if(repo.getConnectionCount(ip) >= Config.WEBSOCKET_MAX_CONNECTIONS) {
+                    exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
+                    return exchange.getResponse().setComplete();
+                }
+                repo.addConnection(ip);
+                repo.getSession(sessionID).setWebsocketIP(ip);
 
                 return super.handleRequest(exchange, handler);
             }

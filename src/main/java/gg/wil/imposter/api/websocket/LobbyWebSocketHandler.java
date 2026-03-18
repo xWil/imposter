@@ -1,9 +1,13 @@
 package gg.wil.imposter.api.websocket;
 
+import gg.wil.imposter.Config;
 import gg.wil.imposter.exception.WebSocketException;
 import gg.wil.imposter.game.Player;
 import gg.wil.imposter.repo.SessionRepo;
 import gg.wil.imposter.services.LobbyService;
+import io.github.bucket4j.Bandwidth;
+import io.github.bucket4j.BandwidthBuilder;
+import io.github.bucket4j.Bucket;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketHandler;
@@ -14,6 +18,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
+import java.time.Duration;
 import java.util.UUID;
 
 @Component
@@ -45,9 +50,16 @@ public class LobbyWebSocketHandler implements WebSocketHandler {
 
         Sinks.Many<String> outgoingSink = Sinks.many().unicast().onBackpressureBuffer();
 
+        final Bandwidth bandwidth = BandwidthBuilder.builder().capacity(Config.WEBSOCKET_MESSAGES_PER_SECOND)
+                .refillIntervally(Config.WEBSOCKET_MESSAGES_PER_SECOND, Duration.ofSeconds(1))
+                .initialTokens(Config.WEBSOCKET_MESSAGES_PER_SECOND).build();
+        final Bucket bucket = Bucket.builder().addLimit(bandwidth).build();
+
         this.lobbyService.playerConnected(lobbyCode, playerID, session, outgoingSink);
         Flux<WebSocketMessage> outgoing = outgoingSink.asFlux().map(session::textMessage);
-        Mono<Void> incoming = session.receive().map(WebSocketMessage::getPayloadAsText)
+        Mono<Void> incoming = session.receive()
+                .filter(_ -> bucket.tryConsume(1))
+                .map(WebSocketMessage::getPayloadAsText)
                 .flatMap(msg -> this.lobbyService.handleMessage(lobbyCode, playerID, msg))
                 .onErrorResume(_ -> Mono.empty())
                 .then();

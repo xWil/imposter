@@ -2,6 +2,7 @@ package gg.wil.imposter.api.controller;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import gg.wil.imposter.Config;
 import gg.wil.imposter.api.messages.LobbyResponse;
 import gg.wil.imposter.exception.websocket.InvalidSessionIdException;
 import gg.wil.imposter.services.LobbyService;
@@ -23,8 +24,6 @@ import java.util.UUID;
 @CrossOrigin(origins = "${app.cors.allowed-origins}")
 public class LobbyController {
 
-    private static final int TOKEN_COUNT = 5;
-    private static final int REFILL_TIME = 10;
     private final LobbyService lobbyService;
 
     private final Cache<String, Bucket> cache = Caffeine.newBuilder()
@@ -40,9 +39,9 @@ public class LobbyController {
     }
 
     private Bucket buildBucket() {
-        Bandwidth bandwidth = BandwidthBuilder.builder().capacity(TOKEN_COUNT)
-                .refillGreedy(TOKEN_COUNT, Duration.ofSeconds(REFILL_TIME))
-                .initialTokens(TOKEN_COUNT).build();
+        Bandwidth bandwidth = BandwidthBuilder.builder().capacity(Config.API_TOKEN_COUNT)
+                .refillGreedy(Config.API_TOKEN_COUNT, Duration.ofSeconds(Config.API_REFILL_TIME))
+                .initialTokens(Config.API_TOKEN_COUNT).build();
         return Bucket.builder().addLimit(bandwidth).build();
     }
 

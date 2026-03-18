@@ -51,7 +51,7 @@ public class LobbyWebSocketHandler implements WebSocketHandler {
         Sinks.Many<String> outgoingSink = Sinks.many().unicast().onBackpressureBuffer();
 
         final Bandwidth bandwidth = BandwidthBuilder.builder().capacity(Config.WEBSOCKET_MESSAGES_PER_SECOND)
-                .refillIntervally(Config.WEBSOCKET_MESSAGES_PER_SECOND, Duration.ofSeconds(1))
+                .refillGreedy(Config.WEBSOCKET_MESSAGES_PER_SECOND, Duration.ofSeconds(1))
                 .initialTokens(Config.WEBSOCKET_MESSAGES_PER_SECOND).build();
         final Bucket bucket = Bucket.builder().addLimit(bandwidth).build();
 

@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import gg.wil.imposter.Config;
 import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessageType;
 import gg.wil.imposter.api.messages.websocket.WebSocketSendMessage;
 import gg.wil.imposter.api.messages.websocket.send.SendPlayerLeaveMessage;
@@ -39,7 +40,7 @@ public class Lobby {
     private final Player host;
     private final ConcurrentHashMap<UUID, Player> players = new ConcurrentHashMap<>();
     private final Game game;
-    private final ScheduledTask closeTask;
+    private ScheduledTask closeTask;
 
     private Lobby(String lobbyCode, Player host) {
         this.logger = LoggerFactory.getLogger("Lobby - " + lobbyCode);
@@ -54,7 +55,7 @@ public class Lobby {
             if(host.isConnected()) return;
             this.logger.info("Lobby {} timed out due to the host not connecting", lobbyCode);
             this.game.stopGame();
-        }, 5000);
+        }, Config.LOBBY_TIMEOUT);
     }
 
     public final String getLobbyCode() {
@@ -115,6 +116,7 @@ public class Lobby {
             // cancel lobby close task
             if(this.closeTask.nextExecution() != null) {
                 this.closeTask.cancel();
+                this.closeTask = null;
             }
         } else {
             player = this.players.get(playerID);
@@ -219,7 +221,6 @@ public class Lobby {
 
     ///  STATIC
 
-    private static final char[] allowedChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
     private static final SecureRandom lobbyRandom = ImposterUtil.generateSecureRandom();
 
     public static Lobby create(Player host) {
@@ -233,12 +234,12 @@ public class Lobby {
         StringBuilder code = new StringBuilder();
         int attempts = 0;
         while(!success) {
-            if(attempts >= 100) return null;
+            if(attempts >= Config.LOBBY_CODE_MAX_ATTEMPTS) return null;
             attempts++;
 
             code = new StringBuilder();
-            for(int i = 0; i < 6; i++) {
-                code.append(allowedChars[lobbyRandom.nextInt(allowedChars.length)]);
+            for(int i = 0; i < Config.LOBBY_CODE_LENGTH; i++) {
+                code.append(Config.LOBBY_CODE_ALLOWED_CHARS[lobbyRandom.nextInt(Config.LOBBY_CODE_ALLOWED_CHARS.length)]);
             }
             success = LobbyRepo.getInstance().getLobby(code.toString()) == null;
         }

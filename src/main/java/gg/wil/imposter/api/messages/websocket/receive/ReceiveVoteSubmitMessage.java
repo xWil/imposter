@@ -21,7 +21,7 @@ public class ReceiveVoteSubmitMessage extends WebSocketReceiveMessage {
         try {
             this.playerID = UUID.fromString(super.getString(data, "playerID"));
         } catch (IllegalArgumentException ex) {
-            throw new InvalidDataException("playerID", ex);
+            throw new InvalidDataException("Field 'playerID' does not contain a valid UUID", ex);
         }
     }
 }

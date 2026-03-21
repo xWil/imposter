@@ -1,5 +1,6 @@
 package gg.wil.imposter.game;
 
+import gg.wil.imposter.Config;
 import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
 import gg.wil.imposter.api.messages.websocket.receive.*;
 import gg.wil.imposter.api.messages.websocket.send.*;
@@ -24,35 +25,44 @@ public class GameThread extends Thread {
     public GameThread(Game game, Lobby lobby) {
         this.game = game;
         this.lobby = lobby;
-        logger = LoggerFactory.getLogger("GameThread - " + lobby.getLobbyCode());
+        this.logger = LoggerFactory.getLogger("GameThread - " + lobby.getLobbyCode());
     }
 
     @Override
     public void run() {
-        logger.info("Game thread started");
+        this.logger.info("Game thread started");
         long tickCount = 0;
 
-        final long TARGET_TPS = 10;
-        final long TARGET_TICK_TIME = 1000000000/TARGET_TPS;
+        final long TARGET_TICK_TIME = 1_000_000_000 / Config.GAME_THREAD_TPS;
         final long START_TIME = System.nanoTime();
 
         while(running) {
             long start = System.nanoTime();
             // calculate timeDebt
-            long correctStartTime = START_TIME + (tickCount * TARGET_TICK_TIME);
-            long timeDebt = Math.abs(correctStartTime - start);
+            final long correctStartTime = START_TIME + (tickCount * TARGET_TICK_TIME);
+            final long timeDebt = Math.abs(correctStartTime - start);
 
             // handle game stuff
             this.tick();
 
             // wait for the next tick
             tickCount++;
-            long tickTime = System.nanoTime()-start;
+            final long tickTime = System.nanoTime()-start;
             long sleepTime = TARGET_TICK_TIME-tickTime;
             sleepTime -= timeDebt;
 
             if(sleepTime > 0) {
-                long finishTime = System.nanoTime() + sleepTime;
+                // long sleep to avoid too many time checks
+                if(sleepTime > Config.GAME_THREAD_SLEEP_INACCURACY) {
+                    final long sleepFor = sleepTime - Config.GAME_THREAD_SLEEP_INACCURACY;
+                    sleepTime -= sleepFor;
+
+                    try { Thread.sleep(sleepFor/1_000_000, (int) (sleepFor % 1_000_000));
+                    } catch (InterruptedException ignored) {}
+                }
+
+                // short sleep to allow for better tick accuracy
+                final long finishTime = System.nanoTime() + sleepTime;
                 while(System.nanoTime() <= finishTime) {
                     try { Thread.sleep(1);
                     } catch (InterruptedException ignored) {}
@@ -78,8 +88,8 @@ public class GameThread extends Thread {
                 case ReceivePlayerLeaveMessage receivePlayerLeaveMessage -> handlePlayerLeaveMessage(receivePlayerLeaveMessage);
                 case ReceivePlayerRejoinMessage receivePlayerRejoinMessage -> handlePlayerRejoinMessage(receivePlayerRejoinMessage);
                 default -> {
-                    if(gameMode != null) {
-                        gameMode.handleMessage(message);
+                    if(this.gameMode != null) {
+                        this.gameMode.handleMessage(message);
                     }
                 }
             }
@@ -108,13 +118,13 @@ public class GameThread extends Thread {
         this.lobby.setState(Lobby.LobbyState.PLAYING);
         this.gameMode = message.getMode().create(lobby, game, null);
         this.game.setGameMode(gameMode);
-        gameMode.startGame();
+        this.gameMode.startGame();
     }
 
     private void handleIconChangeMessage(ReceiveIconChangeMessage message) {
         Player from = message.getFrom();
         from.setIconData(message.getIconData());
-        lobby.broadcastExcludePlayer(new SendIconChangeMessage(from), from.getUUID());
+        this.lobby.broadcastExcludePlayer(new SendIconChangeMessage(from), from.getUUID());
     }
 
     private void handlePingMessage(ReceivePingMessage message) {
@@ -124,18 +134,18 @@ public class GameThread extends Thread {
     private void handlePlayerJoinMessage(ReceivePlayerJoinMessage message) {
         Player from = message.getFrom();
         from.setIconData(message.getIconData());
-        lobby.broadcastExcludePlayer(new SendPlayerJoinMessage(from), from.getUUID());
+        this.lobby.broadcastExcludePlayer(new SendPlayerJoinMessage(from), from.getUUID());
         from.sendMessage(new SendPlayerListMessage(lobby.getPlayers()));
     }
 
     private void handlePlayerLeaveMessage(ReceivePlayerLeaveMessage message) {
         Player from = message.getFrom();
-        if(lobby.getHost() == from) {
-            lobby.broadcastToPlayers(new SendHostLeaveMessage());
-            lobby.closeLobby();
+        if(this.lobby.getHost() == from) {
+            this.lobby.broadcastToPlayers(new SendHostLeaveMessage());
+            this.lobby.closeLobby();
             return;
         }
-        lobby.broadcastExcludePlayer(new SendPlayerLeaveMessage(from.getUUID()), from.getUUID());
+        this.lobby.broadcastExcludePlayer(new SendPlayerLeaveMessage(from.getUUID()), from.getUUID());
     }
 
     private void handlePlayerRejoinMessage(ReceivePlayerRejoinMessage message) {
@@ -152,7 +162,7 @@ public class GameThread extends Thread {
     }
 
     public void stopGame() {
-        logger.info("Stopping game thread");
+        this.logger.info("Stopping game thread");
         running = false;
     }
 }

@@ -9,6 +9,9 @@ public class Config {
     public static int API_REFILL_TIME;
     public static int API_TOKEN_COUNT;
 
+    public static long GAME_THREAD_SLEEP_INACCURACY;
+    public static int GAME_THREAD_TPS;
+
     public static char[] LOBBY_CODE_ALLOWED_CHARS;
     public static int LOBBY_CODE_LENGTH = 6;
     public static int LOBBY_CODE_MAX_ATTEMPTS = 100;
@@ -30,6 +33,17 @@ public class Config {
         API_TOKEN_COUNT = apiTokenCount;
     }
 
+
+    // GAME
+    @Value("${app.game.thread.sleep-inaccuracy}")
+    public void setGameThreadSleepInaccuracy(long gameThreadSleepInaccuracy) {
+        GAME_THREAD_SLEEP_INACCURACY = gameThreadSleepInaccuracy;
+    }
+
+    @Value("${app.game.thread.tps}")
+    public void setGameThreadTps(int gameThreadTps) {
+        GAME_THREAD_TPS = gameThreadTps;
+    }
 
     // LOBBY
     @Value("${app.lobby.code.allowed-chars}")

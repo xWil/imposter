@@ -45,6 +45,13 @@ public abstract class WebSocketReceiveMessage {
         return field.getAsInt();
     }
 
+    protected final JsonObject getJsonObject(JsonObject data, String fieldName) throws MessageException {
+        if (!data.has(fieldName)) throw new MissingFieldException(getMissingMessage(fieldName));
+        JsonElement field = data.get(fieldName);
+        if(!field.isJsonObject()) throw new InvalidTypeException(this.getInvalidTypeMessage(fieldName, "OBJECT"));
+        return field.getAsJsonObject();
+    }
+
     private String getMissingMessage(String field) {
         return "Message is missing field: '" + field + "'";
     }

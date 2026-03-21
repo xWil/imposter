@@ -3,18 +3,17 @@ package gg.wil.imposter.game.gamemode;
 import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
 import gg.wil.imposter.game.Game;
 import gg.wil.imposter.game.Lobby;
+import gg.wil.imposter.game.Settings;
 import gg.wil.imposter.game.gamemode.imposter.ImposterGameMode;
-
-import java.util.Map;
 
 public abstract class GameMode {
 
     private final Mode mode;
     protected final Lobby lobby;
     protected final Game game;
-    protected final Map<String, Object> settings;
+    protected final Settings settings;
 
-    public GameMode(Mode mode, Lobby lobby, Game game, Map<String, Object> settings) {
+    public GameMode(Mode mode, Lobby lobby, Game game, Settings settings) {
         this.mode = mode;
         this.lobby = lobby;
         this.game = game;
@@ -33,7 +32,7 @@ public abstract class GameMode {
         IMPOSTER(ImposterGameMode::new);
 
         private GameModeFactory factory;
-        public GameMode create(Lobby lobby, Game game, Map<String, Object> settings) { return factory.create(lobby, game, settings); }
+        public GameMode create(Lobby lobby, Game game, Settings settings) { return factory.create(lobby, game, settings); }
 
         Mode(GameModeFactory factory) {
             this.factory = factory;
@@ -41,6 +40,6 @@ public abstract class GameMode {
     }
 
     private interface GameModeFactory {
-        GameMode create(Lobby lobby, Game game, Map<String, Object> settings);
+        GameMode create(Lobby lobby, Game game, Settings settings);
     }
 }

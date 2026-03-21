@@ -1,19 +1,30 @@
-package gg.wil.imposter.util;
+package gg.wil.imposter.game;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public class SettingsHelper {
+public class Settings {
 
-    public static boolean containsKey(Map<String, Object> settings, String key) {
-        if(settings == null) throw new IllegalArgumentException("Settings cannot be null");
+    private final JsonObject data;
+    private final Map<String, Object> settings;
 
+    public Settings(JsonObject data) {
+        if(data == null) throw new NullPointerException("'data' cannot be null");
+        this.data = data;
+        Type type = new TypeToken<Map<String, Object>>(){}.getType();
+        this.settings = new Gson().fromJson(data, type);
+    }
+
+    public boolean containsKey(String key) {
         return settings.containsKey(key);
     }
 
-    public static String getString(Map<String, Object> settings, String key) {
-        if(settings == null) throw new IllegalArgumentException("Settings cannot be null");
-
+    public String getString(String key) {
         Object value = settings.get(key);
         if(value instanceof String string) {
             return string;
@@ -22,9 +33,7 @@ public class SettingsHelper {
         }
     }
 
-    public static String getStringOrDefault(Map<String, Object> settings, String key, String defaultValue) {
-        if(settings == null) return defaultValue;
-
+    public String getStringOrDefault(String key, String defaultValue) {
         Object value = settings.get(key);
         if(value instanceof String string) {
             return string;
@@ -33,9 +42,7 @@ public class SettingsHelper {
         }
     }
 
-    public static int getInt(Map<String, Object> settings, String key) {
-        if(settings == null) throw new IllegalArgumentException("Settings cannot be null");
-
+    public int getInt(String key) {
         Object value = settings.get(key);
         if(value instanceof Number number) {
             return number.intValue();
@@ -44,9 +51,7 @@ public class SettingsHelper {
         }
     }
 
-    public static int getIntOrDefault(Map<String, Object> settings, String key, int defaultValue) {
-        if(settings == null) return defaultValue;
-
+    public int getIntOrDefault(String key, int defaultValue) {
         Object value = settings.get(key);
         if(value instanceof Number number) {
             return number.intValue();
@@ -55,9 +60,7 @@ public class SettingsHelper {
         }
     }
 
-    public static long getLong(Map<String, Object> settings, String key) {
-        if(settings == null) throw new IllegalArgumentException("Settings cannot be null");
-
+    public long getLong(String key) {
         Object value = settings.get(key);
         if(value instanceof Number number) {
             return number.longValue();
@@ -66,9 +69,7 @@ public class SettingsHelper {
         }
     }
 
-    public static long getLongOrDefault(Map<String, Object> settings, String key, long defaultValue) {
-        if(settings == null) return defaultValue;
-
+    public long getLongOrDefault(String key, long defaultValue) {
         Object value = settings.get(key);
         if(value instanceof Number number) {
             return number.longValue();
@@ -77,9 +78,7 @@ public class SettingsHelper {
         }
     }
 
-    public static double getDouble(Map<String, Object> settings, String key) {
-        if(settings == null) throw new IllegalArgumentException("Settings cannot be null");
-
+    public double getDouble(String key) {
         Object value = settings.get(key);
         if(value instanceof Number number) {
             return number.doubleValue();
@@ -88,9 +87,7 @@ public class SettingsHelper {
         }
     }
 
-    public static double getDoubleOrDefault(Map<String, Object> settings, String key, double defaultValue) {
-        if(settings == null) return defaultValue;
-
+    public double getDoubleOrDefault(String key, double defaultValue) {
         Object value = settings.get(key);
         if(value instanceof Number number) {
             return number.doubleValue();
@@ -99,9 +96,7 @@ public class SettingsHelper {
         }
     }
 
-    public static float getFloat(Map<String, Object> settings, String key) {
-        if(settings == null) throw new IllegalArgumentException("Settings cannot be null");
-
+    public float getFloat(String key) {
         Object value = settings.get(key);
         if(value instanceof Number number) {
             return number.floatValue();
@@ -110,9 +105,7 @@ public class SettingsHelper {
         }
     }
 
-    public static float getFloat(Map<String, Object> settings, String key, float defaultValue) {
-        if(settings == null) return defaultValue;
-
+    public float getFloat(String key, float defaultValue) {
         Object value = settings.get(key);
         if(value instanceof Number number) {
             return number.floatValue();
@@ -121,9 +114,7 @@ public class SettingsHelper {
         }
     }
 
-    public static boolean getBoolean(Map<String, Object> settings, String key) {
-        if(settings == null) throw new IllegalArgumentException("Settings cannot be null");
-
+    public boolean getBoolean(String key) {
         Object value = settings.get(key);
         if(value instanceof Boolean bool) {
             return bool;
@@ -132,9 +123,7 @@ public class SettingsHelper {
         }
     }
 
-    public static boolean getBooleanOrDefault(Map<String, Object> settings, String key, boolean defaultValue) {
-        if(settings == null) return defaultValue;
-
+    public boolean getBooleanOrDefault(String key, boolean defaultValue) {
         Object value = settings.get(key);
         if(value instanceof Boolean bool) {
             return bool;

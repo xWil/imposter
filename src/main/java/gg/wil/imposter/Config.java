@@ -9,6 +9,19 @@ public class Config {
     public static int API_REFILL_TIME;
     public static int API_TOKEN_COUNT;
 
+    public static int GAME_IMPOSTER_ANSWERING_PHASE_DURATION_DEFAULT;
+    public static int GAME_IMPOSTER_ANSWERING_PHASE_DURATION_MAX;
+    public static int GAME_IMPOSTER_ANSWERING_PHASE_DURATION_MIN;
+    public static int GAME_IMPOSTER_DISCUSSION_PHASE_DURATION_DEFAULT;
+    public static int GAME_IMPOSTER_DISCUSSION_PHASE_DURATION_MAX;
+    public static int GAME_IMPOSTER_DISCUSSION_PHASE_DURATION_MIN;
+    public static int GAME_IMPOSTER_MAX_ROUNDS_DEFAULT;
+    public static int GAME_IMPOSTER_MAX_ROUNDS_MAX;
+    public static int GAME_IMPOSTER_MAX_ROUNDS_MIN;
+    public static int GAME_IMPOSTER_VOTING_PHASE_DURATION_DEFAULT;
+    public static int GAME_IMPOSTER_VOTING_PHASE_DURATION_MAX;
+    public static int GAME_IMPOSTER_VOTING_PHASE_DURATION_MIN;
+
     public static long GAME_THREAD_SLEEP_INACCURACY;
     public static int GAME_THREAD_TPS;
 
@@ -25,6 +38,19 @@ public class Config {
     public Config(Environment env) {
         API_REFILL_TIME = env.getProperty("app.api.refill-time", Integer.class, 0);
         API_TOKEN_COUNT = env.getProperty("app.api.token-count", Integer.class, 0);
+
+        GAME_IMPOSTER_ANSWERING_PHASE_DURATION_DEFAULT = env.getProperty("app.game.imposter.answering-phase-duration.default", Integer.class, 0);
+        GAME_IMPOSTER_ANSWERING_PHASE_DURATION_MAX = env.getProperty("app.game.imposter.answering-phase-duration.max", Integer.class, 0);
+        GAME_IMPOSTER_ANSWERING_PHASE_DURATION_MIN = env.getProperty("app.game.imposter.answering-phase-duration.min", Integer.class, 0);
+        GAME_IMPOSTER_DISCUSSION_PHASE_DURATION_DEFAULT = env.getProperty("app.game.imposter.discussion-phase-duration.default", Integer.class, 0);
+        GAME_IMPOSTER_DISCUSSION_PHASE_DURATION_MAX = env.getProperty("app.game.imposter.discussion-phase-duration.max", Integer.class, 0);
+        GAME_IMPOSTER_DISCUSSION_PHASE_DURATION_MIN = env.getProperty("app.game.imposter.discussion-phase-duration.min", Integer.class, 0);
+        GAME_IMPOSTER_MAX_ROUNDS_DEFAULT = env.getProperty("app.game.imposter.max-rounds.default", Integer.class, 0);
+        GAME_IMPOSTER_MAX_ROUNDS_MAX = env.getProperty("app.game.imposter.max-rounds.max", Integer.class, 0);
+        GAME_IMPOSTER_MAX_ROUNDS_MIN = env.getProperty("app.game.imposter.max-rounds.min", Integer.class, 0);
+        GAME_IMPOSTER_VOTING_PHASE_DURATION_DEFAULT = env.getProperty("app.game.imposter.voting-phase-duration.default", Integer.class, 0);
+        GAME_IMPOSTER_VOTING_PHASE_DURATION_MAX = env.getProperty("app.game.imposter.voting-phase-duration.max", Integer.class, 0);
+        GAME_IMPOSTER_VOTING_PHASE_DURATION_MIN = env.getProperty("app.game.imposter.voting-phase-duration.min", Integer.class, 0);
 
         GAME_THREAD_SLEEP_INACCURACY = env.getProperty("app.game.thread.sleep-inaccuracy", Long.class, 0L);
         GAME_THREAD_TPS = env.getProperty("app.game.thread.tps", Integer.class, 0);

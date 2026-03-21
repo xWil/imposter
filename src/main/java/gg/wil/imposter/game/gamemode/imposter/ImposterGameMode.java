@@ -1,5 +1,6 @@
 package gg.wil.imposter.game.gamemode.imposter;
 
+import gg.wil.imposter.Config;
 import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
 import gg.wil.imposter.api.messages.websocket.receive.*;
 import gg.wil.imposter.api.messages.websocket.send.SendGameEndMessage;
@@ -9,9 +10,9 @@ import gg.wil.imposter.api.messages.websocket.send.SendScoresMessage;
 import gg.wil.imposter.game.Game;
 import gg.wil.imposter.game.Lobby;
 import gg.wil.imposter.game.Player;
+import gg.wil.imposter.game.Settings;
 import gg.wil.imposter.game.gamemode.GameMode;
 import gg.wil.imposter.util.ImposterUtil;
-import gg.wil.imposter.util.SettingsHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,15 +35,22 @@ public class ImposterGameMode extends GameMode {
 
     private final Map<UUID, Integer> scores = new HashMap<>();
 
-    public ImposterGameMode(Lobby lobby, Game game, Map<String, Object> settings) {
+    public ImposterGameMode(Lobby lobby, Game game, Settings settings) {
         super(Mode.IMPOSTER, lobby, game, settings);
         this.logger = LoggerFactory.getLogger("ImposterGameMode - " + lobby.getLobbyCode());
         this.random = ImposterUtil.generateSecureRandom();
 
-        this.maxRounds = SettingsHelper.getIntOrDefault(settings, "maxRounds", 3);
-        this.answeringPhaseDuration = SettingsHelper.getIntOrDefault(settings, "answeringPhaseDuration", 60);
-        this.discussionPhaseDuration = SettingsHelper.getIntOrDefault(settings, "discussionPhaseDuration", 15);
-        this.votingPhaseDuration = SettingsHelper.getIntOrDefault(settings, "votingPhaseDuration", 60);
+        int maxRounds = settings.getIntOrDefault("maxRounds", Config.GAME_IMPOSTER_MAX_ROUNDS_DEFAULT);
+        int answeringPhaseDuration = settings.getIntOrDefault("answeringPhaseDuration", Config.GAME_IMPOSTER_ANSWERING_PHASE_DURATION_DEFAULT);
+        int discussionPhaseDuration = settings.getIntOrDefault("discussionPhaseDuration", Config.GAME_IMPOSTER_DISCUSSION_PHASE_DURATION_DEFAULT);
+        int votingPhaseDuration = settings.getIntOrDefault("votingPhaseDuration", Config.GAME_IMPOSTER_VOTING_PHASE_DURATION_DEFAULT);
+
+        this.maxRounds = Math.clamp(maxRounds, Config.GAME_IMPOSTER_MAX_ROUNDS_MIN, Config.GAME_IMPOSTER_MAX_ROUNDS_MAX);
+        this.answeringPhaseDuration = Math.clamp(answeringPhaseDuration, Config.GAME_IMPOSTER_ANSWERING_PHASE_DURATION_MIN, Config.GAME_IMPOSTER_ANSWERING_PHASE_DURATION_MAX);
+        this.discussionPhaseDuration = Math.clamp(discussionPhaseDuration, Config.GAME_IMPOSTER_DISCUSSION_PHASE_DURATION_MIN, Config.GAME_IMPOSTER_DISCUSSION_PHASE_DURATION_MAX);
+        this.votingPhaseDuration = Math.clamp(votingPhaseDuration, Config.GAME_IMPOSTER_VOTING_PHASE_DURATION_MIN, Config.GAME_IMPOSTER_VOTING_PHASE_DURATION_MAX);
+
+        this.logger.info("Settings: maxRounds={}, answeringPhaseDuration={}, discussionPhaseDuration={}, votingPhaseDuration={}", this.maxRounds, this.answeringPhaseDuration, this.discussionPhaseDuration, this.votingPhaseDuration);
     }
 
     public int getMaxRounds() {

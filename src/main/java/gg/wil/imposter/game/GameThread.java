@@ -116,7 +116,7 @@ public class GameThread extends Thread {
         }
         // start game
         this.lobby.setState(Lobby.LobbyState.PLAYING);
-        this.gameMode = message.getMode().create(lobby, game, null);
+        this.gameMode = message.getMode().create(lobby, game, message.getSettings());
         this.game.setGameMode(gameMode);
         this.gameMode.startGame();
     }

@@ -10,6 +10,7 @@ import java.util.UUID;
 public class SendVotingStartMessage extends WebSocketSendMessage {
 
     private final String question;
+    private final String imposterQuestion;
     private final int time;
     private final Map<UUID, String> answers;
 
@@ -21,9 +22,10 @@ public class SendVotingStartMessage extends WebSocketSendMessage {
         return answers;
     }
 
-    public SendVotingStartMessage(String question, int time, Map<UUID, String> answers) {
+    public SendVotingStartMessage(String question, String imposterQuestion, int time, Map<UUID, String> answers) {
         super(WebSocketSendMessageType.VOTING_START);
         this.question = question;
+        this.imposterQuestion = imposterQuestion;
         this.time = time;
         this.answers = answers;
     }
@@ -35,6 +37,7 @@ public class SendVotingStartMessage extends WebSocketSendMessage {
 
         JsonObject data = new JsonObject();
         data.addProperty("question", super.sanitizeString(this.question));
+        data.addProperty("imposterQuestion", super.sanitizeString(this.imposterQuestion));
         data.addProperty("time", this.time);
 
         JsonObject answersObject = new JsonObject();

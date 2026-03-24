@@ -10,6 +10,7 @@ import java.util.UUID;
 public class SendAnswersMessage extends WebSocketSendMessage {
 
     private final String question;
+    private final String imposterQuestion;
     private final int time;
     private final Map<UUID, String> answers;
 
@@ -17,9 +18,10 @@ public class SendAnswersMessage extends WebSocketSendMessage {
         return answers;
     }
 
-    public SendAnswersMessage(String question, int time, Map<UUID, String> answers) {
+    public SendAnswersMessage(String question, String imposterQuestion, int time, Map<UUID, String> answers) {
         super(WebSocketSendMessageType.ANSWERS);
         this.question = question;
+        this.imposterQuestion = imposterQuestion;
         this.time = time;
         this.answers = answers;
     }
@@ -30,7 +32,8 @@ public class SendAnswersMessage extends WebSocketSendMessage {
         jsonObject.addProperty("type", getType().toString());
 
         JsonObject data = new JsonObject();
-        data.addProperty("question", question);
+        data.addProperty("question", super.sanitizeString(question));
+        data.addProperty("imposterQuestion", super.sanitizeString(imposterQuestion));
         data.addProperty("time", time);
 
         JsonObject answersObject = new JsonObject();

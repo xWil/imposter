@@ -149,7 +149,7 @@ public class ImposterRound {
         if(this.phase != Phase.DISCUSSING) return;
 
         final int discussionPhaseDuration = this.gameMode.getDiscussionPhaseDuration();
-        this.lobby.getHost().sendMessage(new SendAnswersMessage(currentQuestion, discussionPhaseDuration, answers));
+        this.lobby.getHost().sendMessage(new SendAnswersMessage(currentQuestion, imposterQuestion, discussionPhaseDuration, answers));
 
         this.game.getComponentManager().deregisterComponent(this.phaseTimer);
         this.phaseTimer = new Timer((discussionPhaseDuration * 1000L), () -> endPhase(true));
@@ -159,7 +159,7 @@ public class ImposterRound {
     private void endDiscussingPhase(boolean outOfTime) {
         this.phase = Phase.VOTING;
         final int votingPhaseDuration = this.gameMode.getVotingPhaseDuration();
-        SendVotingStartMessage message = new SendVotingStartMessage(currentQuestion, votingPhaseDuration, answers);
+        SendVotingStartMessage message = new SendVotingStartMessage(currentQuestion, imposterQuestion, votingPhaseDuration, answers);
         this.lobby.broadcast(message);
 
         this.game.getComponentManager().deregisterComponent(this.phaseTimer);

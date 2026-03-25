@@ -30,6 +30,8 @@ public class Config {
     public static int LOBBY_CODE_MAX_ATTEMPTS;
     public static long LOBBY_TIMEOUT;
 
+    public static String SERVER_MODE;
+
     public static int WEBSOCKET_MAX_CONNECTIONS;
     public static int WEBSOCKET_MAX_SIZE;
     public static int WEBSOCKET_MESSAGES_PER_SECOND;
@@ -59,6 +61,8 @@ public class Config {
         LOBBY_CODE_LENGTH = env.getProperty("app.lobby.code.length", Integer.class, 6);
         LOBBY_CODE_MAX_ATTEMPTS = env.getProperty("app.lobby.code.max-attempts", Integer.class, 100);
         LOBBY_TIMEOUT = env.getProperty("app.lobby.timeout", Long.class, 0L);
+
+        SERVER_MODE = env.getProperty("app.server.mode", "");
 
         WEBSOCKET_MAX_CONNECTIONS = env.getProperty("app.websocket.max-connections", Integer.class, 0);
         WEBSOCKET_MAX_SIZE = env.getProperty("app.websocket.max-size", Integer.class, 0);

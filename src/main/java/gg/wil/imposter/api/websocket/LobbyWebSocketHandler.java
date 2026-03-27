@@ -9,6 +9,7 @@ import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.BandwidthBuilder;
 import io.github.bucket4j.Bucket;
 import org.jspecify.annotations.NullMarked;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketMessage;
@@ -22,12 +23,14 @@ import java.time.Duration;
 import java.util.UUID;
 
 @Component
+@ConditionalOnExpression("'${app.server.mode}'.toUpperCase() == 'GAME_SERVER' || '${app.server.mode}'.toUpperCase() == 'BOTH'")
 public class LobbyWebSocketHandler implements WebSocketHandler {
 
     private final LobbyService lobbyService;
 
     public LobbyWebSocketHandler(LobbyService lobbyService) {
         this.lobbyService = lobbyService;
+        System.out.println("LobbyWebSocketHandler created");
     }
 
     @Override

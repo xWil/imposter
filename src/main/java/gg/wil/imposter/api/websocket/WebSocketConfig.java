@@ -8,6 +8,7 @@ import gg.wil.imposter.services.LobbyService;
 import gg.wil.imposter.util.ImposterUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,7 @@ import java.util.UUID;
 
 @Configuration
 @EnableWebFlux
+@ConditionalOnExpression("'${app.server.mode}'.toUpperCase() == 'GAME_SERVER' || '${app.server.mode}'.toUpperCase() == 'BOTH'")
 public class WebSocketConfig {
 
     private static Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);

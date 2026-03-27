@@ -10,6 +10,7 @@ import gg.wil.imposter.util.ImposterUtil;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.BandwidthBuilder;
 import io.github.bucket4j.Bucket;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,6 +23,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/lobby")
 @CrossOrigin(origins = "${app.cors.allowed-origins}")
+@ConditionalOnExpression("'${app.server.mode}'.toUpperCase() == 'PROXY' || '${app.server.mode}'.toUpperCase() == 'BOTH'")
 public class LobbyController {
 
     private final LobbyService lobbyService;

@@ -92,4 +92,8 @@ public class Player {
     public static Player create(String username) {
         return new Player(username);
     }
+
+    public static Player create(UUID sessionID, UUID uuid, String username) {
+        return new Player(sessionID, uuid, username);
+    }
 }

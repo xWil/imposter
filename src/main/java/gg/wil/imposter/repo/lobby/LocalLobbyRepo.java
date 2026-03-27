@@ -2,11 +2,13 @@ package gg.wil.imposter.repo.lobby;
 
 import gg.wil.imposter.game.Lobby;
 import gg.wil.imposter.repo.LobbyRepo;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Repository;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
+@ConditionalOnExpression("'${app.server.mode}'.toUpperCase() == 'BOTH'")
 public class LocalLobbyRepo implements LobbyRepo {
 
     private final ConcurrentHashMap<String, Lobby> lobbies = new ConcurrentHashMap<>();
@@ -21,8 +23,18 @@ public class LocalLobbyRepo implements LobbyRepo {
     }
 
     @Override
+    public boolean addLobbyData(LobbyData lobbyData) {
+        throw new UnsupportedOperationException("LocalLobbyRepo does not support addLobbyData");
+    }
+
+    @Override
     public Lobby getLobby(String lobbyCode) {
         return lobbies.get(lobbyCode.toUpperCase());
+    }
+
+    @Override
+    public LobbyData getLobbyData(String lobbyCode) {
+        throw new UnsupportedOperationException("LocalLobbyRepo does not support getLobbyData");
     }
 
     @Override

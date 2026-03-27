@@ -30,7 +30,6 @@ public class LobbyWebSocketHandler implements WebSocketHandler {
 
     public LobbyWebSocketHandler(LobbyService lobbyService) {
         this.lobbyService = lobbyService;
-        System.out.println("LobbyWebSocketHandler created");
     }
 
     @Override

@@ -4,7 +4,7 @@ import gg.wil.imposter.Config;
 import gg.wil.imposter.exception.WebSocketException;
 import gg.wil.imposter.session.Player;
 import gg.wil.imposter.session.repo.SessionRepo;
-import gg.wil.imposter.lobby.LobbyService;
+import gg.wil.imposter.lobby.service.LobbyService;
 import gg.wil.imposter.util.ImposterUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

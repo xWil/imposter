@@ -1,12 +1,14 @@
 package gg.wil.imposter.game;
 
 import gg.wil.imposter.Config;
-import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
-import gg.wil.imposter.api.messages.websocket.receive.*;
-import gg.wil.imposter.api.messages.websocket.send.*;
-import gg.wil.imposter.api.messages.websocket.send.state.SendImposterStateMessage;
-import gg.wil.imposter.api.messages.websocket.send.state.SendLobbyStateMessage;
+import gg.wil.imposter.session.Player;
+import gg.wil.imposter.websocket.messages.WebSocketReceiveMessage;
+import gg.wil.imposter.websocket.messages.receive.*;
+import gg.wil.imposter.websocket.messages.send.*;
+import gg.wil.imposter.websocket.messages.send.state.SendImposterStateMessage;
+import gg.wil.imposter.websocket.messages.send.state.SendLobbyStateMessage;
 import gg.wil.imposter.game.gamemode.GameMode;
+import gg.wil.imposter.lobby.Lobby;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

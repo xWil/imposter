@@ -1,6 +1,6 @@
 package gg.wil.imposter.game.component;
 
-import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
+import gg.wil.imposter.websocket.messages.WebSocketReceiveMessage;
 import gg.wil.imposter.game.Game;
 import gg.wil.imposter.game.component.listener.ListenerExecutor;
 import gg.wil.imposter.game.component.listener.ListenerPriority;

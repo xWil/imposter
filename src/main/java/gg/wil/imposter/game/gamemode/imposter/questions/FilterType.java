@@ -1,14 +1,13 @@
 package gg.wil.imposter.game.gamemode.imposter.questions;
 
 import gg.wil.imposter.game.Game;
-import gg.wil.imposter.game.Lobby;
-import gg.wil.imposter.game.Player;
+import gg.wil.imposter.lobby.Lobby;
+import gg.wil.imposter.session.Player;
 import gg.wil.imposter.util.ImposterUtil;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public enum FilterType {
     NONE {

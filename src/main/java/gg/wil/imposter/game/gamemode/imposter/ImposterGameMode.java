@@ -1,15 +1,15 @@
 package gg.wil.imposter.game.gamemode.imposter;
 
 import gg.wil.imposter.Config;
-import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
-import gg.wil.imposter.api.messages.websocket.receive.*;
-import gg.wil.imposter.api.messages.websocket.send.SendGameEndMessage;
-import gg.wil.imposter.api.messages.websocket.send.SendGameStartMessage;
-import gg.wil.imposter.api.messages.websocket.send.SendPlayerFinishedAnsweringMessage;
-import gg.wil.imposter.api.messages.websocket.send.SendScoresMessage;
+import gg.wil.imposter.websocket.messages.WebSocketReceiveMessage;
+import gg.wil.imposter.websocket.messages.receive.*;
+import gg.wil.imposter.websocket.messages.send.SendGameEndMessage;
+import gg.wil.imposter.websocket.messages.send.SendGameStartMessage;
+import gg.wil.imposter.websocket.messages.send.SendPlayerFinishedAnsweringMessage;
+import gg.wil.imposter.websocket.messages.send.SendScoresMessage;
 import gg.wil.imposter.game.Game;
-import gg.wil.imposter.game.Lobby;
-import gg.wil.imposter.game.Player;
+import gg.wil.imposter.lobby.Lobby;
+import gg.wil.imposter.session.Player;
 import gg.wil.imposter.game.Settings;
 import gg.wil.imposter.game.gamemode.GameMode;
 import gg.wil.imposter.util.ImposterUtil;

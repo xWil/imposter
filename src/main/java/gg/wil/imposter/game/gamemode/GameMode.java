@@ -1,8 +1,8 @@
 package gg.wil.imposter.game.gamemode;
 
-import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
+import gg.wil.imposter.websocket.messages.WebSocketReceiveMessage;
 import gg.wil.imposter.game.Game;
-import gg.wil.imposter.game.Lobby;
+import gg.wil.imposter.lobby.Lobby;
 import gg.wil.imposter.game.Settings;
 import gg.wil.imposter.game.gamemode.imposter.ImposterGameMode;
 

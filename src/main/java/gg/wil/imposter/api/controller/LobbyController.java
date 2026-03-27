@@ -5,7 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import gg.wil.imposter.Config;
 import gg.wil.imposter.api.messages.LobbyResponse;
 import gg.wil.imposter.exception.websocket.InvalidSessionIdException;
-import gg.wil.imposter.services.LobbyService;
+import gg.wil.imposter.lobby.LobbyService;
 import gg.wil.imposter.util.ImposterUtil;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.BandwidthBuilder;

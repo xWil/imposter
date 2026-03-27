@@ -1,9 +1,9 @@
 package gg.wil.imposter.game.gamemode.imposter;
 
-import gg.wil.imposter.api.messages.websocket.send.*;
+import gg.wil.imposter.websocket.messages.send.*;
 import gg.wil.imposter.game.Game;
-import gg.wil.imposter.game.Lobby;
-import gg.wil.imposter.game.Player;
+import gg.wil.imposter.lobby.Lobby;
+import gg.wil.imposter.session.Player;
 import gg.wil.imposter.game.component.components.Timer;
 import gg.wil.imposter.game.gamemode.imposter.questions.FilteredQuestion;
 import gg.wil.imposter.game.gamemode.imposter.questions.ImposterQuestions;

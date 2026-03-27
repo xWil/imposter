@@ -1,9 +1,10 @@
 package gg.wil.imposter.game;
 
-import gg.wil.imposter.api.messages.websocket.WebSocketReceiveMessage;
+import gg.wil.imposter.websocket.messages.WebSocketReceiveMessage;
 import gg.wil.imposter.game.component.ComponentManager;
 import gg.wil.imposter.game.gamemode.GameMode;
 import gg.wil.imposter.game.scheduler.GameScheduler;
+import gg.wil.imposter.lobby.Lobby;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

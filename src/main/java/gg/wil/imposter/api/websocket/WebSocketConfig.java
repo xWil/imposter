@@ -32,7 +32,12 @@ import java.util.UUID;
 @ConditionalOnExpression("'${app.server.mode}'.toUpperCase() == 'GAME_SERVER' || '${app.server.mode}'.toUpperCase() == 'BOTH'")
 public class WebSocketConfig {
 
-    private static Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
+    private final Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
+    private final SessionRepo sessionRepo;
+
+    public WebSocketConfig(SessionRepo sessionRepo) {
+        this.sessionRepo = sessionRepo;
+    }
 
     @Bean
     public HandlerMapping webSocketMapping(LobbyWebSocketHandler handler) {
@@ -73,17 +78,16 @@ public class WebSocketConfig {
 
                 // check max connections
                 String ip = ImposterUtil.getClientIP(exchange);
-                SessionRepo repo = SessionRepo.getInstance();
-                if(repo.getConnectionCount(ip) >= Config.WEBSOCKET_MAX_CONNECTIONS) {
+                if(sessionRepo.getConnectionCount(ip) >= Config.WEBSOCKET_MAX_CONNECTIONS) {
                     logger.warn("Connection refused from {} due to having too many other connections.", ip);
                     exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
                     return exchange.getResponse().setComplete();
                 }
-                repo.addConnection(ip);
-                Player player = repo.getSession(sessionID);
+                sessionRepo.addConnection(ip);
+                Player player = sessionRepo.getSession(sessionID);
                 if(player != null) player.setWebsocketIP(ip);
 
-                return super.handleRequest(exchange, handler).doOnError(_ -> repo.removeConnection(ip));
+                return super.handleRequest(exchange, handler).doOnError(_ -> sessionRepo.removeConnection(ip));
             }
         });
     }

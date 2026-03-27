@@ -35,6 +35,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Lobby {
 
     private final Logger logger;
+    private final LobbyRepo lobbyRepo;
+    private final SessionRepo sessionRepo;
     private final String lobbyCode;
     private LobbyState state;
     private final Player host;
@@ -42,9 +44,11 @@ public class Lobby {
     private final Game game;
     private ScheduledTask closeTask;
 
-    private Lobby(String lobbyCode, Player host) {
+    private Lobby(LobbyRepo lobbyRepo, SessionRepo sessionRepo, String lobbyCode, Player host) {
         this.logger = LoggerFactory.getLogger("Lobby - " + lobbyCode);
         this.logger.info("Lobby created with code {}", lobbyCode);
+        this.lobbyRepo = lobbyRepo;
+        this.sessionRepo = sessionRepo;
         this.lobbyCode = lobbyCode;
         this.state = LobbyState.WAITING;
         this.host = host;
@@ -138,7 +142,7 @@ public class Lobby {
         player.playerDisconnected();
         if(this.state != LobbyState.PLAYING) {
             removePlayer(playerID);
-            SessionRepo.getInstance().removeSession(player);
+            this.sessionRepo.removeSession(player);
             broadcast(new SendPlayerLeaveMessage(playerID));
         }
     }
@@ -212,24 +216,24 @@ public class Lobby {
         this.state = LobbyState.ENDED;
         for(Player player : players.values()) {
             player.disconnectPlayer();
-            SessionRepo.getInstance().removeSession(player);
+            this.sessionRepo.removeSession(player);
         }
         host.disconnectPlayer();
-        SessionRepo.getInstance().removeSession(host);
-        LobbyRepo.getInstance().removeLobby(this.lobbyCode);
+        this.sessionRepo.removeSession(host);
+        this.lobbyRepo.removeLobby(this.lobbyCode);
     }
 
     ///  STATIC
 
     private static final SecureRandom lobbyRandom = ImposterUtil.generateSecureRandom();
 
-    public static Lobby create(Player host) {
-        String code = generateNewLobbyCode();
+    public static Lobby create(LobbyRepo lobbyRepo, SessionRepo sessionRepo, Player host) {
+        String code = generateNewLobbyCode(lobbyRepo);
         if(code == null) return null;
-        return new Lobby(code, host);
+        return new Lobby(lobbyRepo, sessionRepo, code, host);
     }
 
-    private static String generateNewLobbyCode() {
+    private static String generateNewLobbyCode(LobbyRepo lobbyRepo) {
         boolean success = false;
         StringBuilder code = new StringBuilder();
         int attempts = 0;
@@ -241,7 +245,7 @@ public class Lobby {
             for(int i = 0; i < Config.LOBBY_CODE_LENGTH; i++) {
                 code.append(Config.LOBBY_CODE_ALLOWED_CHARS[lobbyRandom.nextInt(Config.LOBBY_CODE_ALLOWED_CHARS.length)]);
             }
-            success = LobbyRepo.getInstance().getLobby(code.toString()) == null;
+            success = lobbyRepo.getLobby(code.toString()) == null;
         }
         return code.toString();
     }

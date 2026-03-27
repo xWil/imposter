@@ -27,9 +27,11 @@ import java.util.UUID;
 public class LobbyWebSocketHandler implements WebSocketHandler {
 
     private final LobbyService lobbyService;
+    private final SessionRepo sessionRepo;
 
-    public LobbyWebSocketHandler(LobbyService lobbyService) {
+    public LobbyWebSocketHandler(LobbyService lobbyService, SessionRepo sessionRepo) {
         this.lobbyService = lobbyService;
+        this.sessionRepo = sessionRepo;
     }
 
     @Override
@@ -47,7 +49,7 @@ public class LobbyWebSocketHandler implements WebSocketHandler {
             return session.send(Mono.just(session.textMessage(message))).then(session.close());
         }
 
-        final Player player = SessionRepo.getInstance().getSession(sessionID);
+        final Player player = this.sessionRepo.getSession(sessionID);
         final UUID playerID = player.getUUID();
 
         Sinks.Many<String> outgoingSink = Sinks.many().unicast().onBackpressureBuffer();
@@ -67,7 +69,7 @@ public class LobbyWebSocketHandler implements WebSocketHandler {
                 .then();
 
         return session.send(outgoing).and(incoming.doFinally(signalType -> {
-            SessionRepo.getInstance().removeConnection(player.getWebsocketIP());
+            this.sessionRepo.removeConnection(player.getWebsocketIP());
             this.lobbyService.playerDisconnected(lobbyCode, playerID);
         }));
     }

@@ -30,13 +30,11 @@ public class LobbyService {
     public LobbyService(LobbyRepo lobbyRepo, SessionRepo sessionRepo) {
         this.lobbyRepo = lobbyRepo;
         this.sessionRepo = sessionRepo;
-        LobbyRepo.setInstance(lobbyRepo);
-        SessionRepo.setInstance(sessionRepo);
     }
 
     public final Mono<LobbyResponse> createLobby() {
         Player host = Player.create("");
-        Lobby lobby = Lobby.create(host);
+        Lobby lobby = Lobby.create(this.lobbyRepo, this.sessionRepo, host);
         if(lobby == null) return Mono.error(new CantCreateLobbyException());
         lobbyRepo.addLobby(lobby);
         sessionRepo.addSession(host, lobby);

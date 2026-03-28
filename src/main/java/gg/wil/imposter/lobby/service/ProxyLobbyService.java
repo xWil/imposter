@@ -19,6 +19,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -37,15 +38,17 @@ public class ProxyLobbyService implements LobbyService {
     }
 
     private Mono<Pair<String, String>> getHostServer() {
-        return redis.opsForHash().entries("game_servers")
+        return redis.keys("game_server:*")
                 .collectList()
-                .mapNotNull(servers -> {
-                    if (servers.isEmpty()) return null; // no servers available
+                .flatMap(keys -> {
+                    if (keys.isEmpty()) return Mono.empty(); // no servers available
 
-                    // TODO: implement load balancing
-                    System.out.println(servers);
-                    Map.Entry<Object, Object> first = servers.getFirst();
-                    return new Pair<>(first.getKey().toString(), first.getValue().toString());
+                    // TODO: implement proper load balancing
+                    String randomServerKey = keys.get(new Random().nextInt(keys.size()));
+                    String serverID = randomServerKey.replace("game_server:", "");
+
+                    return redis.opsForValue().get(randomServerKey)
+                            .map(url -> new Pair<>(serverID, url));
                 });
     }
 

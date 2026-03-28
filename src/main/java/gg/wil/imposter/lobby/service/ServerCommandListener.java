@@ -6,14 +6,18 @@ import gg.wil.imposter.lobby.Lobby;
 import gg.wil.imposter.lobby.repo.LobbyRepo;
 import gg.wil.imposter.session.Player;
 import gg.wil.imposter.session.repo.SessionRepo;
-import jakarta.annotation.PostConstruct;
+import gg.wil.imposter.util.Scheduler;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
+import org.springframework.scheduling.config.ScheduledTask;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.UUID;
 
 @Component
@@ -28,6 +32,8 @@ public class ServerCommandListener {
     private final SessionRepo sessionRepo;
 
     private final String serverID = "gs-" + UUID.randomUUID().toString().substring(0, 8);
+    private String serverURL = null;
+    private ScheduledTask heartbeatTask = null;
 
     public ServerCommandListener(ReactiveStringRedisTemplate redis, LobbyRepo lobbyRepo, SessionRepo sessionRepo) {
         this.redis = redis;
@@ -35,13 +41,10 @@ public class ServerCommandListener {
         this.sessionRepo = sessionRepo;
     }
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
     public void startListening() {
-        final String url = "ws://localhost:" + System.getProperty("server.port", "8080");
-
-        this.redis.opsForHash().put("game_servers", serverID, url)
-                .doOnSuccess(_ -> this.logger.info("Added game server with ID: {} and URL: {}", serverID, url))
-                .subscribe();
+        this.serverURL = "ws://localhost:" + System.getProperty("server.port", "8080");
+        this.heartbeatTask = Scheduler.INSTANCE.runTaskTimer(this::heartbeat, 5000L);
 
         final String channel = "server-commands:" + serverID;
         redis.listenToChannel(channel)
@@ -51,9 +54,18 @@ public class ServerCommandListener {
         this.logger.info("Listening for server commands on channel: {}", channel);
     }
 
+    public void heartbeat() {
+        if (this.serverURL != null) {
+            this.redis.opsForValue()
+                    .set("game_server:" + serverID, this.serverURL, Duration.ofSeconds(10))
+                    .subscribe();
+        }
+    }
+
     @PreDestroy
     public void stopListening() {
-        this.redis.opsForHash().remove("game_servers", this.serverID).block();
+        this.heartbeatTask.cancel();
+        this.redis.delete("game_server:" + this.serverID).block();
         this.logger.info("Removed game server {} from Redis", this.serverID);
     }
 

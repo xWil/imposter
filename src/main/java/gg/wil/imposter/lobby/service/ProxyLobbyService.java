@@ -6,7 +6,6 @@ import gg.wil.imposter.exception.lobby.*;
 import gg.wil.imposter.exception.websocket.InvalidSessionIdException;
 import gg.wil.imposter.lobby.Lobby;
 import gg.wil.imposter.lobby.LobbyData;
-import gg.wil.imposter.lobby.messages.ServerCommand;
 import gg.wil.imposter.lobby.repo.LobbyRepo;
 import gg.wil.imposter.session.Player;
 import gg.wil.imposter.session.SessionData;
@@ -66,7 +65,7 @@ public class ProxyLobbyService implements LobbyService {
             this.lobbyRepo.addLobbyData(data);
 
             // send command to game server
-            ServerCommand command = new ServerCommand("CREATE", lobbyCode, host.getSessionID(), host.getUUID());
+            ServerCommand command = new ServerCommand("CREATE", lobbyCode, host.getSessionID(), host.getUUID(), "");
             final String channel = "server-commands:" + serverID;
             final String websocketUrl = serverUrl + "/ws/lobby/" + lobbyCode;
 
@@ -92,7 +91,7 @@ public class ProxyLobbyService implements LobbyService {
         Player player = Player.create(username);
         SessionData sessionData = new SessionData(player.getUUID().toString(), player.getSessionID().toString(), player.getUsername(), lobbyCode.toUpperCase());
         this.sessionRepo.addSession(sessionData);
-        final ServerCommand command = new ServerCommand("JOIN", lobbyCode, player.getSessionID(), player.getUUID());
+        final ServerCommand command = new ServerCommand("JOIN", lobbyCode, player.getSessionID(), player.getUUID(), username);
         final String websocketURL = lobbyData.gameServerURL() + "/ws/lobby/" + lobbyCode;
 
         return this.redis.convertAndSend("server-commands:" + lobbyData.serverID(), gson.toJson(command))

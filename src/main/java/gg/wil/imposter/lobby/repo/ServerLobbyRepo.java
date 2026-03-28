@@ -1,6 +1,7 @@
 package gg.wil.imposter.lobby.repo;
 
 import com.google.gson.Gson;
+import gg.wil.imposter.lobby.Lobby;
 import gg.wil.imposter.lobby.LobbyData;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
@@ -35,5 +36,14 @@ public class ServerLobbyRepo extends LocalLobbyRepo {
         super.removeLobby(lobbyCode);
         Long deleted = this.redis.delete("lobby:" + lobbyCode.toUpperCase()).block();
         return deleted != null && deleted > 0;
+    }
+
+    public void updateLobbyData(Lobby lobby) {
+        final String key = "lobby:" + lobby.getLobbyCode().toUpperCase();
+        this.redis.opsForValue().get(key).subscribe(json -> {
+            LobbyData current = gson.fromJson(json, LobbyData.class);
+            LobbyData updated = new LobbyData(current.lobbyCode(), current.serverID(), current.gameServerURL(), current.hostID(), lobby.getPlayers().size(), lobby.getState().toString());
+            this.redis.opsForValue().set(key, gson.toJson(updated)).subscribe();
+        });
     }
 }

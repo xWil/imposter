@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import gg.wil.imposter.Config;
+import gg.wil.imposter.lobby.repo.ServerLobbyRepo;
 import gg.wil.imposter.websocket.messages.WebSocketReceiveMessageType;
 import gg.wil.imposter.websocket.messages.WebSocketSendMessage;
 import gg.wil.imposter.websocket.messages.send.SendPlayerLeaveMessage;
@@ -102,15 +103,22 @@ public class Lobby {
         if(this.players.containsKey(player.getUUID())) throw new AlreadyInLobbyException(this.lobbyCode);
 
         this.players.put(player.getUUID(), player);
+        this.updateLobby();
         // remove player from the lobby if they don't connect to the websocket within 5 seconds
         Scheduler.INSTANCE.runTaskLater(() -> {
             if(player.isConnected()) return;
-            this.players.remove(player.getUUID());
+            this.removePlayer(player.getUUID());
+            this.sessionRepo.removeSession(player);
         }, 5000);
     }
 
     public final void removePlayer(UUID uuid) {
+        this.removePlayer(uuid, true);
+    }
+
+    public final void removePlayer(UUID uuid, boolean update) {
         this.players.remove(uuid);
+        if(update) this.updateLobby();
     }
 
     public final void playerConnected(UUID playerID, WebSocketSession session, Sinks.Many<String> outgoingSink) {
@@ -143,7 +151,7 @@ public class Lobby {
         logger.info("Player {} disconnected from the lobby", player.getUUID());
         player.playerDisconnected();
         if(this.state != LobbyState.PLAYING) {
-            removePlayer(playerID);
+            this.removePlayer(playerID);
             this.sessionRepo.removeSession(player);
             broadcast(new SendPlayerLeaveMessage(playerID));
         }
@@ -223,6 +231,13 @@ public class Lobby {
         host.disconnectPlayer();
         this.sessionRepo.removeSession(host);
         this.lobbyRepo.removeLobby(this.lobbyCode);
+    }
+
+    private void updateLobby() {
+        // update lobby in redis
+        if(this.lobbyRepo instanceof ServerLobbyRepo serverLobbyRepo) {
+            serverLobbyRepo.updateLobbyData(this);
+        }
     }
 
     ///  STATIC

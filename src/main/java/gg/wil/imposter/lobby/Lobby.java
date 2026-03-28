@@ -5,8 +5,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import gg.wil.imposter.Config;
-import gg.wil.imposter.lobby.repo.LocalLobbyRepo;
 import gg.wil.imposter.lobby.repo.ServerLobbyRepo;
+import gg.wil.imposter.session.repo.ServerSessionRepo;
 import gg.wil.imposter.websocket.messages.WebSocketReceiveMessageType;
 import gg.wil.imposter.websocket.messages.WebSocketSendMessage;
 import gg.wil.imposter.websocket.messages.send.SendPlayerLeaveMessage;
@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.config.ScheduledTask;
 import org.springframework.web.reactive.socket.WebSocketSession;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
@@ -108,8 +109,9 @@ public class Lobby {
         // remove player from the lobby if they don't connect to the websocket within 5 seconds
         Scheduler.INSTANCE.runTaskLater(() -> {
             if(player.isConnected()) return;
+            if(!players.containsKey(player.getUUID())) return;
             this.removePlayer(player.getUUID());
-            this.sessionRepo.removeSession(player);
+            this.removeSession(player);
         }, 5000);
     }
 
@@ -141,20 +143,22 @@ public class Lobby {
     }
 
     public final void playerDisconnected(UUID playerID) {
+        if(this.state == LobbyState.ENDED) return;
         Player player = players.get(playerID);
         if(player == null) {
             if(playerID.equals(host.getUUID())) {
-                logger.info("Host disconnected from the lobby");
+                this.logger.info("Host disconnected from the lobby");
+                this.state = LobbyState.ENDED;
                 this.game.stopGame();
                 return;
             } else return;
         }
-        logger.info("Player {} disconnected from the lobby", player.getUUID());
+        this.logger.info("Player {} disconnected from the lobby", player.getUUID());
         player.playerDisconnected();
         if(this.state != LobbyState.PLAYING) {
             this.removePlayer(playerID);
-            this.sessionRepo.removeSession(player);
-            broadcast(new SendPlayerLeaveMessage(playerID));
+            this.removeSession(player);
+            this.broadcast(new SendPlayerLeaveMessage(playerID));
         }
     }
 
@@ -223,15 +227,36 @@ public class Lobby {
     }
 
     public final void closeLobby() {
-        logger.info("Closing lobby...");
+        this.logger.info("Closing lobby...");
         this.state = LobbyState.ENDED;
+
+        this.host.disconnectPlayer();
         for(Player player : players.values()) {
             player.disconnectPlayer();
+        }
+
+        if(this.lobbyRepo instanceof ServerLobbyRepo) {
+            Flux.fromIterable(players.values()).flatMap(player -> this.sessionRepo.removeSession(player.getSessionID()))
+                    .then(this.sessionRepo.removeSession(host.getSessionID()))
+                    .then(this.lobbyRepo.removeLobbyData(this.lobbyCode))
+                    .doOnError(e -> logger.error("An error occurred when removing session and lobby data from redis for lobby {}", this.lobbyCode, e))
+                    .subscribe();
+            return;
+        }
+
+        for(Player player : players.values()) {
             this.sessionRepo.removeSession(player);
         }
-        host.disconnectPlayer();
         this.sessionRepo.removeSession(host);
         this.lobbyRepo.removeLobby(this.lobbyCode);
+    }
+
+    private void removeSession(Player player) {
+        if(this.sessionRepo instanceof ServerSessionRepo) {
+            this.sessionRepo.removeSession(player.getSessionID()).subscribe();
+        } else {
+            this.sessionRepo.removeSession(player);
+        }
     }
 
     private void updateLobby() {
@@ -255,7 +280,7 @@ public class Lobby {
         return new Lobby(lobbyRepo, sessionRepo, lobbyCode, host);
     }
 
-    public static String generateNewLobbyCode(LobbyRepo lobbyRepo) {
+    private static String generateNewLobbyCode(LobbyRepo lobbyRepo) {
         boolean success = false;
         StringBuilder code = new StringBuilder();
         int attempts = 0;
@@ -267,10 +292,34 @@ public class Lobby {
             for(int i = 0; i < Config.LOBBY_CODE_LENGTH; i++) {
                 code.append(Config.LOBBY_CODE_ALLOWED_CHARS[lobbyRandom.nextInt(Config.LOBBY_CODE_ALLOWED_CHARS.length)]);
             }
-            if(lobbyRepo instanceof LocalLobbyRepo) success = lobbyRepo.getLobby(code.toString()) == null;
-            else success = lobbyRepo.getLobbyData(code.toString()) == null;
+            success = lobbyRepo.getLobby(code.toString()) == null;
         }
         return code.toString();
+    }
+
+    public static Mono<String> generateNewLobbyCodeProxy(LobbyRepo lobbyRepo) {
+        return generateNewLobbyCodeProxy(lobbyRepo, 0);
+    }
+
+    private static Mono<String> generateNewLobbyCodeProxy(LobbyRepo lobbyRepo, int attempts) {
+        if (attempts >= Config.LOBBY_CODE_MAX_ATTEMPTS) {
+            return Mono.empty();
+        }
+
+        StringBuilder codeBuilder = new StringBuilder();
+        for(int i = 0; i < Config.LOBBY_CODE_LENGTH; i++) {
+            codeBuilder.append(Config.LOBBY_CODE_ALLOWED_CHARS[lobbyRandom.nextInt(Config.LOBBY_CODE_ALLOWED_CHARS.length)]);
+        }
+        String code = codeBuilder.toString();
+        Mono<Boolean> exists = lobbyRepo.getLobbyData(code).hasElement();
+
+        return exists.flatMap(doesExist -> {
+            if (doesExist) {
+                return generateNewLobbyCodeProxy(lobbyRepo, attempts + 1);
+            } else {
+                return Mono.just(code);
+            }
+        });
     }
 
     public enum LobbyState {

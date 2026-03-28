@@ -6,6 +6,7 @@ import gg.wil.imposter.lobby.LobbyData;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Mono;
 
 @Repository
 @ConditionalOnExpression("'${app.server.mode}'.toUpperCase() == 'GAME_SERVER'")
@@ -19,23 +20,26 @@ public class ServerLobbyRepo extends LocalLobbyRepo {
     }
 
     @Override
-    public boolean addLobbyData(LobbyData lobbyData) {
+    public Mono<Boolean> addLobbyData(LobbyData lobbyData) {
         String json = gson.toJson(lobbyData);
-        return Boolean.TRUE.equals(this.redis.opsForValue().setIfAbsent("lobby:" + lobbyData.lobbyCode().toUpperCase(), json).block());
+        return this.redis.opsForValue().setIfAbsent("lobby:" + lobbyData.lobbyCode().toUpperCase(), json);
     }
 
     @Override
-    public LobbyData getLobbyData(String lobbyCode) {
-        String json = this.redis.opsForValue().get("lobby:" + lobbyCode.toUpperCase()).block();
-        if(json == null) return null;
-        return gson.fromJson(json, LobbyData.class);
+    public Mono<LobbyData> getLobbyData(String lobbyCode) {
+        return this.redis.opsForValue().get("lobby:" + lobbyCode.toUpperCase())
+                .map(json -> gson.fromJson(json, LobbyData.class));
     }
 
     @Override
     public boolean removeLobby(String lobbyCode) {
+        throw new UnsupportedOperationException("ServerLobbyRepo does not support removeLobby");
+    }
+
+    @Override
+    public Mono<Long> removeLobbyData(String lobbyCode) {
         super.removeLobby(lobbyCode);
-        Long deleted = this.redis.delete("lobby:" + lobbyCode.toUpperCase()).block();
-        return deleted != null && deleted > 0;
+        return this.redis.delete("lobby:" + lobbyCode.toUpperCase());
     }
 
     public void updateLobbyData(Lobby lobby) {

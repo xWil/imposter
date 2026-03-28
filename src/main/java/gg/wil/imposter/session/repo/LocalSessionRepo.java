@@ -5,6 +5,7 @@ import gg.wil.imposter.session.Player;
 import gg.wil.imposter.session.SessionData;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -44,7 +45,7 @@ public class LocalSessionRepo implements SessionRepo {
     }
 
     @Override
-    public void addSession(SessionData sessionData) {
+    public Mono<Boolean> addSession(SessionData sessionData) {
         throw new UnsupportedOperationException("LocalSessionRepo does not support addSession(PlayerData)");
     }
 
@@ -55,7 +56,7 @@ public class LocalSessionRepo implements SessionRepo {
     }
 
     @Override
-    public void removeSession(SessionData sessionData) {
+    public Mono<Long> removeSession(UUID sessionID) {
         throw new UnsupportedOperationException("LocalSessionRepo does not support removeSession(PlayerData)");
     }
 
@@ -65,7 +66,7 @@ public class LocalSessionRepo implements SessionRepo {
     }
 
     @Override
-    public SessionData getSessionData(UUID sessionID) {
+    public Mono<SessionData> getSessionData(UUID sessionID) {
         throw new UnsupportedOperationException("LocalSessionRepo does not support getSessionData");
     }
 

@@ -43,6 +43,7 @@ public class ProxyLobbyService implements LobbyService {
                     if (servers.isEmpty()) return null; // no servers available
 
                     // TODO: implement load balancing
+                    System.out.println(servers);
                     Map.Entry<Object, Object> first = servers.getFirst();
                     return new Pair<>(first.getKey().toString(), first.getValue().toString());
                 });
@@ -53,24 +54,26 @@ public class ProxyLobbyService implements LobbyService {
         return getHostServer().flatMap(server -> {
             String serverID = server.getLeft();
             String serverUrl = server.getRight();
+            System.out.println("Creating lobby on server " + serverID);
 
-            String lobbyCode = Lobby.generateNewLobbyCode(this.lobbyRepo);
-            if(lobbyCode == null) return Mono.error(new CantCreateLobbyException());
+            return Lobby.generateNewLobbyCodeProxy(this.lobbyRepo)
+                    .switchIfEmpty(Mono.error(new CantCreateLobbyException()))
+                    .flatMap(lobbyCode -> {
+                        Player host = Player.create("");
+                        SessionData hostData = new SessionData(host.getSessionID().toString(), host.getUUID().toString(), host.getUsername(), lobbyCode.toUpperCase());
 
-            Player host = Player.create("");
-            SessionData hostData = new SessionData(host.getUUID().toString(), host.getSessionID().toString(), host.getUsername(), lobbyCode.toUpperCase());
-            this.sessionRepo.addSession(hostData);
+                        LobbyData data = new LobbyData(lobbyCode, serverID, serverUrl, host.getUUID().toString(), 0, Lobby.LobbyState.WAITING.toString());
 
-            LobbyData data = new LobbyData(lobbyCode, serverID, serverUrl, host.getUUID().toString(), 0, Lobby.LobbyState.WAITING.toString());
-            this.lobbyRepo.addLobbyData(data);
+                        // send command to game server
+                        ServerCommand command = new ServerCommand("CREATE", lobbyCode, host.getSessionID(), host.getUUID(), "");
+                        final String channel = "server-commands:" + serverID;
+                        final String websocketUrl = serverUrl + "/ws/lobby/" + lobbyCode;
 
-            // send command to game server
-            ServerCommand command = new ServerCommand("CREATE", lobbyCode, host.getSessionID(), host.getUUID(), "");
-            final String channel = "server-commands:" + serverID;
-            final String websocketUrl = serverUrl + "/ws/lobby/" + lobbyCode;
-
-            return redis.convertAndSend(channel, gson.toJson(command))
-                    .then(Mono.just(new LobbyResponse(lobbyCode, host.getSessionID().toString(), host.getUUID().toString(), websocketUrl)));
+                        return this.sessionRepo.addSession(hostData)
+                                .then(this.lobbyRepo.addLobbyData(data))
+                                .then(this.redis.convertAndSend(channel, gson.toJson(command)))
+                                .thenReturn(new LobbyResponse(lobbyCode, host.getSessionID().toString(), host.getUUID().toString(), websocketUrl));
+                    });
         }).switchIfEmpty(Mono.error(new CantCreateLobbyException()));
     }
 
@@ -78,36 +81,38 @@ public class ProxyLobbyService implements LobbyService {
     public Mono<LobbyResponse> joinLobby(String lobbyCode, String username) {
         if (!checkUsername(username)) return Mono.error(new InvalidUsernameException(lobbyCode));
 
-        LobbyData lobbyData = this.lobbyRepo.getLobbyData(lobbyCode);
-        if (lobbyData == null) return Mono.error(new LobbyNotFoundException(lobbyCode));
+        return this.lobbyRepo.getLobbyData(lobbyCode)
+                .switchIfEmpty(Mono.error(new LobbyNotFoundException(lobbyCode)))
+                .flatMap(lobbyData -> {
+                    if (!Lobby.LobbyState.WAITING.toString().equals(lobbyData.state())) {
+                        return Mono.error(new InProgressException(lobbyCode));
+                    }
+                    if (lobbyData.playerCount() >= 8) {
+                        return Mono.error(new LobbyFullException(lobbyCode));
+                    }
 
-        if (!Lobby.LobbyState.WAITING.toString().equals(lobbyData.state())) {
-            return Mono.error(new InProgressException(lobbyCode));
-        }
-        if (lobbyData.playerCount() >= 8) {
-            return Mono.error(new LobbyFullException(lobbyCode));
-        }
+                    Player player = Player.create(username);
+                    SessionData sessionData = new SessionData(player.getSessionID().toString(), player.getUUID().toString(),  player.getUsername(), lobbyCode.toUpperCase());
 
-        Player player = Player.create(username);
-        SessionData sessionData = new SessionData(player.getUUID().toString(), player.getSessionID().toString(), player.getUsername(), lobbyCode.toUpperCase());
-        this.sessionRepo.addSession(sessionData);
-        final ServerCommand command = new ServerCommand("JOIN", lobbyCode, player.getSessionID(), player.getUUID(), username);
-        final String websocketURL = lobbyData.gameServerURL() + "/ws/lobby/" + lobbyCode;
+                    final ServerCommand command = new ServerCommand("JOIN", lobbyCode, player.getSessionID(), player.getUUID(), username);
+                    final String websocketURL = lobbyData.gameServerURL() + "/ws/lobby/" + lobbyCode;
 
-        return this.redis.convertAndSend("server-commands:" + lobbyData.serverID(), gson.toJson(command))
-                .then(Mono.just(new LobbyResponse(lobbyCode, player.getSessionID().toString(), player.getUUID().toString(), websocketURL)));
+                    return this.sessionRepo.addSession(sessionData)
+                            .then(this.redis.convertAndSend("server-commands:" + lobbyData.serverID(), gson.toJson(command)))
+                            .thenReturn(new LobbyResponse(lobbyCode, player.getSessionID().toString(), player.getUUID().toString(), websocketURL));
+                });
     }
 
     @Override
     public Mono<LobbyResponse> rejoinLobby(UUID sessionID) {
-        SessionData sessionData = this.sessionRepo.getSessionData(sessionID);
-        if(sessionData == null) return Mono.error(new InvalidSessionIdException());
-
-        LobbyData lobbyData = this.lobbyRepo.getLobbyData(sessionData.lobbyCode());
-        if(lobbyData == null) return Mono.error(new InvalidSessionIdException());
-
-        final String websocketURL = lobbyData.gameServerURL() + "/ws/lobby/" + lobbyData.lobbyCode();
-        return Mono.just(new LobbyResponse(sessionData.lobbyCode(), sessionData.sessionID(), sessionData.playerID(), websocketURL));
+        return this.sessionRepo.getSessionData(sessionID)
+                .switchIfEmpty(Mono.error(new InvalidSessionIdException()))
+                .flatMap(sessionData -> this.lobbyRepo.getLobbyData(sessionData.lobbyCode())
+                         .switchIfEmpty(Mono.error(new InvalidSessionIdException()))
+                         .map(lobbyData -> {
+                             final String websocketURL = lobbyData.gameServerURL() + "/ws/lobby/" + lobbyData.lobbyCode();
+                             return new LobbyResponse(sessionData.lobbyCode(), sessionData.sessionID(), sessionData.playerID(), websocketURL);
+                         }));
     }
 
     @Override

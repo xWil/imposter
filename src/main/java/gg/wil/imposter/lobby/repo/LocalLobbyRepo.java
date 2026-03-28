@@ -4,6 +4,7 @@ import gg.wil.imposter.lobby.Lobby;
 import gg.wil.imposter.lobby.LobbyData;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Mono;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -23,7 +24,7 @@ public class LocalLobbyRepo implements LobbyRepo {
     }
 
     @Override
-    public boolean addLobbyData(LobbyData lobbyData) {
+    public Mono<Boolean> addLobbyData(LobbyData lobbyData) {
         throw new UnsupportedOperationException("LocalLobbyRepo does not support addLobbyData");
     }
 
@@ -33,12 +34,17 @@ public class LocalLobbyRepo implements LobbyRepo {
     }
 
     @Override
-    public LobbyData getLobbyData(String lobbyCode) {
+    public Mono<LobbyData> getLobbyData(String lobbyCode) {
         throw new UnsupportedOperationException("LocalLobbyRepo does not support getLobbyData");
     }
 
     @Override
     public boolean removeLobby(String lobbyCode) {
         return lobbies.remove(lobbyCode) != null;
+    }
+
+    @Override
+    public Mono<Long> removeLobbyData(String lobbyCode) {
+        throw new UnsupportedOperationException("LocalLobbyRepo does not support removeLobbyData");
     }
 }

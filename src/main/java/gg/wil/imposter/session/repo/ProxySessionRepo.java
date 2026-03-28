@@ -7,6 +7,7 @@ import gg.wil.imposter.session.SessionData;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
@@ -47,9 +48,9 @@ public class ProxySessionRepo implements SessionRepo {
     }
 
     @Override
-    public void addSession(SessionData sessionData) {
+    public Mono<Boolean> addSession(SessionData sessionData) {
         String playerJson = gson.toJson(sessionData);
-        this.redis.opsForValue().set("session:" + sessionData.sessionID(), playerJson).block();
+        return this.redis.opsForValue().set("session:" + sessionData.sessionID(), playerJson);
     }
 
     @Override
@@ -58,8 +59,8 @@ public class ProxySessionRepo implements SessionRepo {
     }
 
     @Override
-    public void removeSession(SessionData sessionData) {
-        this.redis.delete("session:" + sessionData.sessionID()).block();
+    public Mono<Long> removeSession(UUID sessionID) {
+        return this.redis.delete("session:" + sessionID.toString());
     }
 
     @Override
@@ -68,10 +69,9 @@ public class ProxySessionRepo implements SessionRepo {
     }
 
     @Override
-    public SessionData getSessionData(UUID sessionID) {
-        String json = this.redis.opsForValue().get("session:" + sessionID).block();
-        if(json == null) return null;
-        return gson.fromJson(json, SessionData.class);
+    public Mono<SessionData> getSessionData(UUID sessionID) {
+        return this.redis.opsForValue().get("session:" + sessionID)
+                .map(session -> gson.fromJson(session, SessionData.class));
     }
 
     @Override

@@ -23,6 +23,7 @@ import reactor.core.publisher.Sinks;
 import java.util.UUID;
 
 @Service
+@ConditionalOnExpression("'${app.server.mode}'.toUpperCase() == 'BOTH'")
 public class LocalLobbyService implements LobbyService {
 
     private final LobbyRepo lobbyRepo;

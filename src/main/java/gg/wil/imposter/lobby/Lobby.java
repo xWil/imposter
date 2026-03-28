@@ -235,7 +235,11 @@ public class Lobby {
         return new Lobby(lobbyRepo, sessionRepo, code, host);
     }
 
-    private static String generateNewLobbyCode(LobbyRepo lobbyRepo) {
+    public static Lobby create(LobbyRepo lobbyRepo, SessionRepo sessionRepo, String lobbyCode, Player host) {
+        return new Lobby(lobbyRepo, sessionRepo, lobbyCode, host);
+    }
+
+    public static String generateNewLobbyCode(LobbyRepo lobbyRepo) {
         boolean success = false;
         StringBuilder code = new StringBuilder();
         int attempts = 0;

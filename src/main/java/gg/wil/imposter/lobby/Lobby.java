@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import gg.wil.imposter.Config;
+import gg.wil.imposter.lobby.repo.LocalLobbyRepo;
 import gg.wil.imposter.lobby.repo.ServerLobbyRepo;
 import gg.wil.imposter.websocket.messages.WebSocketReceiveMessageType;
 import gg.wil.imposter.websocket.messages.WebSocketSendMessage;
@@ -266,7 +267,8 @@ public class Lobby {
             for(int i = 0; i < Config.LOBBY_CODE_LENGTH; i++) {
                 code.append(Config.LOBBY_CODE_ALLOWED_CHARS[lobbyRandom.nextInt(Config.LOBBY_CODE_ALLOWED_CHARS.length)]);
             }
-            success = lobbyRepo.getLobby(code.toString()) == null;
+            if(lobbyRepo instanceof LocalLobbyRepo) success = lobbyRepo.getLobby(code.toString()) == null;
+            else success = lobbyRepo.getLobbyData(code.toString()) == null;
         }
         return code.toString();
     }

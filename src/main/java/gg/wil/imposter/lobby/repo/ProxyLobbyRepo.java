@@ -20,7 +20,7 @@ public class ProxyLobbyRepo implements LobbyRepo {
 
     @Override
     public boolean addLobby(Lobby lobby) {
-        throw new UnsupportedOperationException("RedisLobbyRepo does not support addLobby");
+        throw new UnsupportedOperationException("ProxyLobbyRepo does not support addLobby");
     }
 
     @Override
@@ -31,7 +31,7 @@ public class ProxyLobbyRepo implements LobbyRepo {
 
     @Override
     public Lobby getLobby(String lobbyCode) {
-        throw new UnsupportedOperationException("RedisLobbyRepo does not support getLobby");
+        throw new UnsupportedOperationException("ProxyLobbyRepo does not support getLobby");
     }
 
     @Override

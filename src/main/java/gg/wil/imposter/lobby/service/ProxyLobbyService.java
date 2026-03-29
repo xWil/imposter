@@ -18,7 +18,6 @@ import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
-import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
@@ -57,7 +56,6 @@ public class ProxyLobbyService implements LobbyService {
         return getHostServer().flatMap(server -> {
             String serverID = server.getLeft();
             String serverUrl = server.getRight();
-            System.out.println("Creating lobby on server " + serverID);
 
             return Lobby.generateNewLobbyCodeProxy(this.lobbyRepo)
                     .switchIfEmpty(Mono.error(new CantCreateLobbyException()))

@@ -31,6 +31,7 @@ public class Config {
     public static long LOBBY_TIMEOUT;
 
     public static String SERVER_MODE;
+    public static String SERVER_PUBLIC_URL;
 
     public static int WEBSOCKET_MAX_CONNECTIONS;
     public static int WEBSOCKET_MAX_SIZE;
@@ -63,6 +64,7 @@ public class Config {
         LOBBY_TIMEOUT = env.getProperty("app.lobby.timeout", Long.class, 0L);
 
         SERVER_MODE = env.getProperty("app.server.mode", "");
+        SERVER_PUBLIC_URL = env.getProperty("app.server.public-url", "");
 
         WEBSOCKET_MAX_CONNECTIONS = env.getProperty("app.websocket.max-connections", Integer.class, 0);
         WEBSOCKET_MAX_SIZE = env.getProperty("app.websocket.max-size", Integer.class, 0);

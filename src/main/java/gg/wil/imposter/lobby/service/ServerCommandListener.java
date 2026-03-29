@@ -1,6 +1,7 @@
 package gg.wil.imposter.lobby.service;
 
 import com.google.gson.Gson;
+import gg.wil.imposter.Config;
 import gg.wil.imposter.exception.LobbyException;
 import gg.wil.imposter.lobby.Lobby;
 import gg.wil.imposter.lobby.repo.LobbyRepo;
@@ -43,7 +44,7 @@ public class ServerCommandListener {
 
     @EventListener(ApplicationReadyEvent.class)
     public void startListening() {
-        this.serverURL = "ws://localhost:" + System.getProperty("server.port", "8080");
+        this.serverURL = Config.SERVER_PUBLIC_URL;
         this.heartbeatTask = Scheduler.INSTANCE.runTaskTimer(this::heartbeat, 5000L);
 
         final String channel = "server-commands:" + serverID;

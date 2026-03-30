@@ -30,6 +30,11 @@ public class Config {
     public static int LOBBY_CODE_MAX_ATTEMPTS;
     public static long LOBBY_TIMEOUT;
 
+    public static long REDIS_CHECK_INTERVAL;
+    public static int REDIS_CHECK_TIMEOUT;
+
+    public static long SERVER_GAME_HEARTBEAT_INTERVAL;
+    public static int SERVER_GAME_HEARTBEAT_TIMEOUT;
     public static String SERVER_MODE;
     public static String SERVER_PUBLIC_URL;
 
@@ -63,6 +68,11 @@ public class Config {
         LOBBY_CODE_MAX_ATTEMPTS = env.getProperty("app.lobby.code.max-attempts", Integer.class, 100);
         LOBBY_TIMEOUT = env.getProperty("app.lobby.timeout", Long.class, 0L);
 
+        REDIS_CHECK_INTERVAL = env.getProperty("app.redis.check-interval", Long.class, 5000L);
+        REDIS_CHECK_TIMEOUT = env.getProperty("app.redis.check-timeout", Integer.class, 2);
+
+        SERVER_GAME_HEARTBEAT_INTERVAL = env.getProperty("app.server.game.heartbeat-interval", Long.class, 5000L);
+        SERVER_GAME_HEARTBEAT_TIMEOUT = env.getProperty("app.server.game.heartbeat-timeout", Integer.class, 8);
         SERVER_MODE = env.getProperty("app.server.mode", "");
         SERVER_PUBLIC_URL = env.getProperty("app.server.public-url", "");
 

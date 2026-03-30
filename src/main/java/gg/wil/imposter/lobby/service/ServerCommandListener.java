@@ -46,7 +46,7 @@ public class ServerCommandListener {
     @EventListener(ApplicationReadyEvent.class)
     public void startListening() {
         this.serverURL = Config.SERVER_PUBLIC_URL;
-        this.heartbeatTask = Scheduler.INSTANCE.runTaskTimer(this::heartbeat, 5000L);
+        this.heartbeatTask = Scheduler.INSTANCE.runTaskTimer(this::heartbeat, Config.SERVER_GAME_HEARTBEAT_INTERVAL);
 
         final String channel = "server-commands:" + serverID;
         redis.listenToChannel(channel)
@@ -65,7 +65,7 @@ public class ServerCommandListener {
 
             ServerHeartbeat heartbeat = new ServerHeartbeat(this.serverID, this.serverURL, currentLoad);
             this.redis.opsForValue()
-                    .set("game_server:" + serverID, this.gson.toJson(heartbeat), Duration.ofSeconds(10))
+                    .set("game_server:" + serverID, this.gson.toJson(heartbeat), Duration.ofSeconds(Config.SERVER_GAME_HEARTBEAT_TIMEOUT))
                     .subscribe();
         }
     }

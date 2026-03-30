@@ -1,5 +1,6 @@
 package gg.wil.imposter.util;
 
+import gg.wil.imposter.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -32,7 +33,7 @@ public class RedisHealthMonitor {
 
     @EventListener(ApplicationReadyEvent.class)
     public void startChecking() {
-        this.checkTask = Scheduler.INSTANCE.runTaskTimer(this::checkRedisConnection, 5000L);
+        this.checkTask = Scheduler.INSTANCE.runTaskTimer(this::checkRedisConnection, Config.REDIS_CHECK_INTERVAL);
     }
 
     public void checkRedisConnection() {
@@ -42,7 +43,7 @@ public class RedisHealthMonitor {
         }
 
         this.redis.opsForValue().get("health_check_ping")
-                .timeout(Duration.ofSeconds(2))
+                .timeout(Duration.ofSeconds(Config.REDIS_CHECK_TIMEOUT))
                 .subscribe(result -> {}, this::handleDisconnect);
     }
 

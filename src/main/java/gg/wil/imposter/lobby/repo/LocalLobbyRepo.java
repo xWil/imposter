@@ -47,4 +47,8 @@ public class LocalLobbyRepo implements LobbyRepo {
     public Mono<Long> removeLobbyData(String lobbyCode) {
         throw new UnsupportedOperationException("LocalLobbyRepo does not support removeLobbyData");
     }
+
+    public int getLobbyCount() {
+        return lobbies.size();
+    }
 }

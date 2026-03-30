@@ -11,6 +11,8 @@ import gg.wil.imposter.session.Player;
 import gg.wil.imposter.session.SessionData;
 import gg.wil.imposter.session.repo.SessionRepo;
 import gg.wil.imposter.data.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -18,19 +20,20 @@ import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
 
-import java.util.Random;
 import java.util.UUID;
 
 @Service
 @ConditionalOnExpression("'${app.server.mode}'.toUpperCase() == 'PROXY'")
 public class ProxyLobbyService implements LobbyService {
 
+    private final Logger logger;
     private final LobbyRepo lobbyRepo;
     private final SessionRepo sessionRepo;
     private final ReactiveStringRedisTemplate redis;
     private final Gson gson = new Gson();
 
     public ProxyLobbyService(LobbyRepo lobbyRepo, SessionRepo sessionRepo, ReactiveStringRedisTemplate redis) {
+        this.logger = LoggerFactory.getLogger(ProxyLobbyService.class);
         this.lobbyRepo = lobbyRepo;
         this.sessionRepo = sessionRepo;
         this.redis = redis;
@@ -40,14 +43,24 @@ public class ProxyLobbyService implements LobbyService {
         return redis.keys("game_server:*")
                 .collectList()
                 .flatMap(keys -> {
-                    if (keys.isEmpty()) return Mono.empty(); // no servers available
+                    // no servers available
+                    if (keys.isEmpty()) {
+                        this.logger.warn("Someone has tried to create a lobby, but there are no servers available");
+                        return Mono.empty();
+                    }
 
-                    // TODO: implement proper load balancing
-                    String randomServerKey = keys.get(new Random().nextInt(keys.size()));
-                    String serverID = randomServerKey.replace("game_server:", "");
-
-                    return redis.opsForValue().get(randomServerKey)
-                            .map(url -> new Pair<>(serverID, url));
+                    return redis.opsForValue().multiGet(keys)
+                            .mapNotNull(values -> {
+                                ServerHeartbeat bestServer = values.stream()
+                                        .map(json -> gson.fromJson(json, ServerHeartbeat.class))
+                                        .min(java.util.Comparator.comparingInt(ServerHeartbeat::activeLobbies))
+                                        .orElse(null);
+                                if (bestServer == null) {
+                                    this.logger.warn("Someone has tried to create a lobby, but there are no servers available");
+                                    return null;
+                                }
+                                return new Pair<>(bestServer.serverID(), bestServer.serverURL());
+                            });
                 });
     }
 

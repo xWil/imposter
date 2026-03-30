@@ -5,6 +5,7 @@ import gg.wil.imposter.Config;
 import gg.wil.imposter.exception.LobbyException;
 import gg.wil.imposter.lobby.Lobby;
 import gg.wil.imposter.lobby.repo.LobbyRepo;
+import gg.wil.imposter.lobby.repo.LocalLobbyRepo;
 import gg.wil.imposter.session.Player;
 import gg.wil.imposter.session.repo.SessionRepo;
 import gg.wil.imposter.util.Scheduler;
@@ -57,8 +58,14 @@ public class ServerCommandListener {
 
     public void heartbeat() {
         if (this.serverURL != null) {
+            int currentLoad =0;
+            if(this.lobbyRepo instanceof LocalLobbyRepo localLobbyRepo) {
+                currentLoad = localLobbyRepo.getLobbyCount();
+            }
+
+            ServerHeartbeat heartbeat = new ServerHeartbeat(this.serverID, this.serverURL, currentLoad);
             this.redis.opsForValue()
-                    .set("game_server:" + serverID, this.serverURL, Duration.ofSeconds(10))
+                    .set("game_server:" + serverID, this.gson.toJson(heartbeat), Duration.ofSeconds(10))
                     .subscribe();
         }
     }
